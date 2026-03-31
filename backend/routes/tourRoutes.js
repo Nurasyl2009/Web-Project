@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, title, description, price, city, image_url FROM tours ORDER BY id ASC'
+      'SELECT id, title, description, price, city, image_url, map_url, route_text FROM tours ORDER BY id ASC'
     );
     const tours = result.rows.map((t) => ({
       ...t,
@@ -40,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', auth, async (req, res) => {
-  const { title, description, price, city, image_url } = req.body;
+  const { title, description, price, city, image_url, map_url, route_text } = req.body;
 
   if (!title || !price || !city) {
     return res.status(400).json({ success: false, message: 'Атауы, бағасы және қаласы міндетті' });
@@ -51,8 +51,8 @@ router.post('/', auth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'INSERT INTO tours (title, description, price, city, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, description || '', price, city, image_url || '']
+      'INSERT INTO tours (title, description, price, city, image_url, map_url, route_text) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [title, description || '', price, city, image_url || '', map_url || null, route_text || null]
     );
     res.status(201).json({ success: true, message: 'Тур қосылды', tour: result.rows[0] });
   } catch (err) {
@@ -65,7 +65,7 @@ router.put('/:id', auth, async (req, res) => {
   const { id } = req.params;
   if (isNaN(id)) return res.status(400).json({ success: false, message: 'ID дұрыс емес' });
 
-  const { title, description, price, city, image_url } = req.body;
+  const { title, description, price, city, image_url, map_url, route_text } = req.body;
 
   try {
     const existing = await pool.query('SELECT id FROM tours WHERE id = $1', [id]);
@@ -79,10 +79,12 @@ router.put('/:id', auth, async (req, res) => {
            description = COALESCE($2, description),
            price = COALESCE($3, price),
            city = COALESCE($4, city),
-           image_url = COALESCE($5, image_url)
-       WHERE id = $6
+           image_url = COALESCE($5, image_url),
+           map_url = COALESCE($6, map_url),
+           route_text = COALESCE($7, route_text)
+       WHERE id = $8
        RETURNING *`,
-      [title, description, price, city, image_url, id]
+      [title, description, price, city, image_url, map_url, route_text, id]
     );
     res.json({ success: true, message: 'Тур жаңартылды', tour: result.rows[0] });
   } catch (err) {

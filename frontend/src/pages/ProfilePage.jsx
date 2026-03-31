@@ -111,6 +111,17 @@ function ProfilePage() {
       return;
     }
 
+    const maxBytes = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxBytes) {
+      toast.error('Файл тым үлкен. Максимум 2MB.');
+      return;
+    }
+
+    if (file.name.length > 80) {
+      toast.error('Файл атауы тым ұзын. 80 символдан аспасын.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('avatar', file);
 
@@ -119,7 +130,7 @@ function ProfilePage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/upload/avatar', {
+      const res = await fetch('/api/upload/avatar', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -164,18 +175,17 @@ function ProfilePage() {
       <div className="profile-hero">
         <div className="profile-hero__bg" />
         <div className="profile-hero__content">
-          <label htmlFor="avatar-upload" className="profile-avatar" style={{ cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+          <div className="profile-avatar">
             {user.avatar_url ? (
-              <img src={`http://localhost:5000${user.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              <img src={user.avatar_url} alt="Avatar" />
             ) : (
               <div className="profile-avatar__initials">{initials}</div>
             )}
             {avatarLoading && (
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>⏳</div>
             )}
-            <input id="avatar-upload" type="file" accept="image/*" style={{ display: 'none' }} disabled={avatarLoading} onChange={handleAvatarChange} />
             <div className="profile-avatar__ring" />
-          </label>
+          </div>
           <div className="profile-hero__info">
             <h1 className="profile-hero__name">{user.name}</h1>
             <p className="profile-hero__email">✉️ {user.email}</p>
@@ -239,6 +249,33 @@ function ProfilePage() {
                 </button>
               )}
             </div>
+
+            <div className="profile-fields" style={{ marginBottom: '1rem' }}>
+              <div className="profile-field">
+                <label>Аватар</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center' }}>
+                    {user.avatar_url ? (
+                      <img src={user.avatar_url} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontWeight: 800 }}>{initials}</span>
+                    )}
+                  </div>
+                  <label className="btn-outline" style={{ cursor: avatarLoading ? 'not-allowed' : 'pointer', opacity: avatarLoading ? 0.6 : 1 }}>
+                    {avatarLoading ? 'Жүктелуде...' : '🖼️ Аватарды өзгерту'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      disabled={avatarLoading}
+                      onChange={handleAvatarChange}
+                    />
+                  </label>
+                  <span style={{ opacity: 0.8, fontSize: 13 }}>PNG/JPG, 2MB дейін, атауы 80 символға дейін</span>
+                </div>
+              </div>
+            </div>
+
             <div className="profile-fields">
               <div className="profile-field">
                 <label>Аты-жөні</label>

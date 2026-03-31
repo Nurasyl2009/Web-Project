@@ -26,8 +26,17 @@ async function initDatabase() {
         price       INTEGER NOT NULL,
         city        VARCHAR(100),
         image_url   TEXT,
+        map_url     TEXT,
+        route_text  TEXT,
         created_at  TIMESTAMP DEFAULT NOW()
       );
+    `);
+
+    // Ensure columns exist for older databases
+    await client.query(`
+      ALTER TABLE tours
+      ADD COLUMN IF NOT EXISTS map_url TEXT,
+      ADD COLUMN IF NOT EXISTS route_text TEXT;
     `);
 
     await client.query(`
@@ -68,11 +77,27 @@ async function initDatabase() {
     const { rowCount } = await client.query('SELECT id FROM tours LIMIT 1');
     if (rowCount === 0) {
       await client.query(`
-        INSERT INTO tours (title, description, price, city, image_url) VALUES
-        ('Парижге саяхат', 'Махаббат қаласының сиқырын сезініңіз.', 450000, 'Париж', 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=500&auto=format&fit=crop'),
-        ('Рим демалысы', 'Ежелгі тарих пен дәмді итальян асханасы.', 380000, 'Рим', 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=500&auto=format&fit=crop'),
-        ('Берлин рухы', 'Заманауи мәдениет пен еркіндік қаласы.', 320000, 'Берлин', 'https://images.unsplash.com/photo-1560969184-10fe8719e047?q=80&w=500&auto=format&fit=crop'),
-        ('Мадрид саяхаты', 'Испанияның астанасы — мәдениет пен энергия.', 620000, 'Мадрид', 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?q=80&w=500&auto=format&fit=crop');
+        INSERT INTO tours (title, description, price, city, image_url, route_text, map_url) VALUES
+        ('Парижге саяхат', 'Махаббат қаласының сиқырын сезініңіз.', 450000, 'Париж',
+          'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=500&auto=format&fit=crop',
+          'Эйфель мұнарасы → Триумф қақпасы → Лувр → Нотр-Дам',
+          'https://www.google.com/maps?q=Eiffel+Tower+to+Arc+de+Triomphe+to+Louvre+to+Notre+Dame,+Paris'
+        ),
+        ('Рим демалысы', 'Ежелгі тарих пен дәмді итальян асханасы.', 380000, 'Рим',
+          'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=500&auto=format&fit=crop',
+          'Колизей → Пантеон → Треви фонтаны → Ватикан',
+          'https://www.google.com/maps?q=Colosseum+to+Pantheon+to+Trevi+Fountain+to+Vatican+Museums,+Rome'
+        ),
+        ('Берлин рухы', 'Заманауи мәдениет пен еркіндік қаласы.', 320000, 'Берлин',
+          'https://images.unsplash.com/photo-1560969184-10fe8719e047?q=80&w=500&auto=format&fit=crop',
+          'Бранденбург қақпасы → Рейхстаг → Музей аралы → Берлин қабырғасы',
+          'https://www.google.com/maps?q=Brandenburg+Gate+to+Reichstag+to+Museumsinsel+to+Berlin+Wall,+Berlin'
+        ),
+        ('Мадрид саяхаты', 'Испанияның астанасы — мәдениет пен энергия.', 620000, 'Мадрид',
+          'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?q=80&w=500&auto=format&fit=crop',
+          'Корольдік сарай → Прадо музейі → Пуэрта-дель-Соль → Ретиро',
+          'https://www.google.com/maps?q=Royal+Palace+of+Madrid+to+Prado+Museum+to+Puerta+del+Sol+to+El+Retiro,+Madrid'
+        );
       `);
       console.log('🌍 Демо турлар қосылды');
     }

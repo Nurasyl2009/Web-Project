@@ -1,47 +1,61 @@
-## TravelWay — fullstack web app
+## TravelWay - Fullstack Travel Website
 
-Монорепозиторий с:
+Курстық жоба: веб-сайтты жобалау және үздіксіз жұмыс істеуін қамтамасыз ету.
 
-- **frontend**: React + Vite (dev-сервер на `http://localhost:3000`, проксирует `/api` на backend)
-- **backend**: Node.js + Express + PostgreSQL (API на `http://localhost:5000`)
+TravelWay - турларды қарау, брондау, пайдаланушыны тіркеу/кіру, таңдаулылар, админ панель және байланыс формасы бар толыққанды web-қосымша.
 
-### Стек
+### 1) Технологиялар
 
-- **Frontend**: React 18, Vite, React Router, Chart.js
-- **Backend**: Express, pg, JWT (jsonwebtoken), bcryptjs, multer
-- **DB**: PostgreSQL
+- **Frontend**: React 18, Vite, React Router, Chart.js, react-hot-toast
+- **Backend**: Node.js, Express, JWT, bcryptjs, multer
+- **Database**: PostgreSQL
+- **Other**: CORS, REST API, файл жүктеу (`uploads`)
 
-### Структура проекта
+### 2) Негізгі функционал
 
-```
+- Пайдаланушыны тіркеу және жүйеге кіру (JWT аутентификация)
+- Турлар тізімі, тур деталі, CRUD (`GET/POST/PUT/DELETE`)
+- Турды брондау және бос орын санын тексеру
+- Таңдаулыларға қосу/өшіру
+- Кері байланыс формасы
+- Аватар жүктеу (multer арқылы)
+- Админ модулі: users, tours, payments, stats
+- 404 және серверлік қателерді өңдеу
+
+### 3) Жоба құрылымы
+
+```text
 Project/
-├─ frontend/                 # React + Vite
-│  ├─ src/
-│  ├─ index.html
-│  └─ vite.config.js         # proxy /api -> http://localhost:5000
-├─ backend/                  # Express API + DB + миграции
-│  ├─ routes/
-│  ├─ middleware/
-│  ├─ js/                    # db connection (pg Pool)
-│  ├─ uploads/               # загружаемые файлы (runtime, не коммитится)
-│  ├─ init-db.js
-│  └─ server.js
-└─ README.md
+|- frontend/                 # React + Vite клиент бөлігі
+|  |- src/
+|  |- index.html
+|  |- package.json
+|  `- vite.config.js         # /api -> http://localhost:5000 прокси
+|- backend/                  # Express REST API
+|  |- routes/                # endpoint логикасы
+|  |- middleware/            # auth, role, validation helpers
+|  |- js/db.js               # PostgreSQL connection
+|  |- uploads/               # runtime media files
+|  |- init-db.js             # кестелерді инициализациялау
+|  |- package.json
+|  `- server.js
+|- API.md                    # API құжаттамасы
+|- TESTING.md                # тестілеу чек-листі
+|- DEPLOYMENT.md             # орналастыру нұсқаулығы
+`- README.md
 ```
 
-### Запуск (dev)
+### 4) Орнату және іске қосу (Development)
 
-#### 1) База данных
-
-Создай БД (пример):
+#### 4.1 PostgreSQL дайындау
 
 ```sql
 CREATE DATABASE "Tur";
 ```
 
-Настройки подключения сейчас захардкожены в `backend/js/db.js` — при необходимости измени `user/host/database/password/port` под свою среду.
+Ағымдағы жобада DB параметрлері `backend/js/db.js` ішінде берілген. Жергілікті ортаңызға сай `user/host/database/password/port` мәндерін жаңартыңыз.
 
-#### 2) Backend
+#### 4.2 Backend іске қосу
 
 ```bash
 cd backend
@@ -50,9 +64,9 @@ node init-db.js
 npm run dev
 ```
 
-Backend стартует на `http://localhost:5000`.
+API мекенжайы: `http://localhost:5000`
 
-#### 3) Frontend
+#### 4.3 Frontend іске қосу
 
 ```bash
 cd frontend
@@ -60,9 +74,11 @@ npm install
 npm run dev
 ```
 
-Frontend стартует на `http://localhost:3000` и обращается к API через прокси (`/api` -> `http://localhost:5000`).
+Client мекенжайы: `http://localhost:3000`
 
-### Сборка (production)
+Vite proxy арқылы `/api` сұраныстары backend-ке бағытталады.
+
+### 5) Production режимі
 
 ```bash
 cd frontend
@@ -71,13 +87,55 @@ cd ../backend
 npm start
 ```
 
-Backend будет раздавать статическую сборку из `frontend/dist`.
+Backend `frontend/dist` ішіндегі статиканы таратады.
 
-### API (основное)
+### 6) Скрипттер
 
-- **Auth**: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
-- **Tours**: `GET /api/tours` (+ остальные CRUD внутри `backend/routes/tourRoutes.js`)
-- **Other**: `POST /api/buy`, `POST /api/contact`, `POST /api/upload`, `GET/POST /api/favorites`, `GET/POST /api/admin` (если включено)
+#### Frontend (`frontend/package.json`)
 
-Статика загрузок: `GET /uploads/<filename>`.
+- `npm run dev` - development server
+- `npm run build` - production build
+- `npm run preview` - build preview
+
+#### Backend (`backend/package.json`)
+
+- `npm run dev` - API server (development)
+- `npm start` - API server (production)
+
+### 7) Бағалау критерийіне сәйкестік (қысқаша карта)
+
+- **Функционалдылық**: Auth, Tours CRUD, Favorites, Buy, Contact, Upload, Admin, 404/error handling
+- **Жұмыстың дұрыстығы**: валидация, try/catch, HTTP статус кодтары, қате хабарламалары
+- **Өнімділік**: Vite build, статикалық тарату, REST сұраныстарын бөлу
+- **Дизайн/UX**: React SPA навигациясы, формалар, хабарламалар, адаптивті беттер
+- **Код сапасы**: модульдік құрылым (`routes`, `middleware`, `src/components/pages`)
+- **Технологияны қолдану**: React функционалды компоненттері, Router, Node.js + PostgreSQL REST API
+- **Тестілеу**: `TESTING.md` бойынша қолмен және API тестілеу
+- **Құжаттама**: `README.md`, `API.md`, `TESTING.md`, `DEPLOYMENT.md`
+
+### 8) API және тестілеу құжаттары
+
+- Толық endpoint сипаттамасы: `API.md`
+- Тестілеу чек-листі: `TESTING.md`
+- Орналастыру нұсқаулығы: `DEPLOYMENT.md`
+
+### 9) Автор
+
+- **Жоба атауы**: TravelWay
+- **Формат**: КМ04 пәні бойынша курстық жоба
+
+### 10) Скриншоттар (қорғауға дәлел)
+
+Скриншоттарды `docs/screenshots/` папкасына орналастырыңыз және файл атауларын төмендегі үлгімен сақтаңыз:
+
+- Auth: `01-auth.png`
+- Tours list: `02-tours-list.png`
+- Tour details: `03-tour-details.png`
+- Booking form: `04-booking.png`
+- Favorites: `05-favorites.png`
+- Admin panel: `06-admin.png`
+- Avatar upload: `07-upload-avatar.png`
+- 404 page: `08-404.png`
+
+Қосымша нұсқаулық: `SCREENSHOTS.md`
 

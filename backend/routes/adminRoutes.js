@@ -28,14 +28,14 @@ router.get('/tours', adminMiddleware, async (req, res) => {
 
 // Add a new tour
 router.post('/tours', adminMiddleware, async (req, res) => {
-  const { title, description, price, city, image_url } = req.body;
+  const { title, description, price, city, image_url, map_url, route_text } = req.body;
   if (!title || !price) {
     return res.status(400).json({ success: false, message: 'Тақырыбы мен бағасы міндетті' });
   }
   try {
     const result = await pool.query(
-      'INSERT INTO tours (title, description, price, city, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, description, price, city, image_url]
+      'INSERT INTO tours (title, description, price, city, image_url, map_url, route_text) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [title, description, price, city, image_url, map_url || null, route_text || null]
     );
     res.status(201).json({ success: true, message: 'Тур қосылды', tour: result.rows[0] });
   } catch (err) {
@@ -92,14 +92,14 @@ router.put('/users/:id/role', adminMiddleware, async (req, res) => {
 
 // Edit a tour
 router.put('/tours/:id', adminMiddleware, async (req, res) => {
-  const { title, description, price, city, image_url } = req.body;
+  const { title, description, price, city, image_url, map_url, route_text } = req.body;
   if (!title || !price) {
     return res.status(400).json({ success: false, message: 'Тақырыбы мен бағасы міндетті' });
   }
   try {
     const result = await pool.query(
-      'UPDATE tours SET title = $1, description = $2, price = $3, city = $4, image_url = $5 WHERE id = $6 RETURNING *',
-      [title, description, price, city, image_url, req.params.id]
+      'UPDATE tours SET title = $1, description = $2, price = $3, city = $4, image_url = $5, map_url = $6, route_text = $7 WHERE id = $8 RETURNING *',
+      [title, description, price, city, image_url, map_url || null, route_text || null, req.params.id]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ success: false, message: 'Тур табылмады' });

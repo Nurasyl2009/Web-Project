@@ -25,9 +25,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB max
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
+      if (file.originalname && file.originalname.length > 80) {
+        return cb(new Error('Файл атауы тым ұзын (макс. 80 символ).'));
+      }
       cb(null, true);
     } else {
       cb(new Error('Тек суреттер жүктеуге болады!'));
@@ -68,6 +71,19 @@ router.post('/avatar', authenticate, upload.single('avatar'), async (req, res) =
     console.error('Avatar upload қатесі:', err);
     res.status(500).json({ success: false, message: 'Серверлік қате' });
   }
+});
+
+router.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ success: false, message: 'Файл тым үлкен. Максимум 2MB.' });
+    }
+    return res.status(400).json({ success: false, message: err.message || 'Файл жүктеу қатесі' });
+  }
+  if (err) {
+    return res.status(400).json({ success: false, message: err.message || 'Файл қатесі' });
+  }
+  next();
 });
 
 module.exports = router;

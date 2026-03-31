@@ -29,7 +29,7 @@ function AdminPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTour, setEditingTour] = useState(null);
-  const [formData, setFormData] = useState({ title: '', description: '', price: '', city: '', image_url: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', price: '', city: '', image_url: '', route_text: '', map_url: '' });
 
   const currentUser = JSON.parse(localStorage.getItem('user')) || {};
 
@@ -129,13 +129,21 @@ function AdminPage() {
 
   const openCreateModal = () => {
     setEditingTour(null);
-    setFormData({ title: '', description: '', price: '', city: '', image_url: '' });
+    setFormData({ title: '', description: '', price: '', city: '', image_url: '', route_text: '', map_url: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (tour) => {
     setEditingTour(tour);
-    setFormData({ title: tour.title, description: tour.description, price: tour.price, city: tour.city, image_url: tour.image_url });
+    setFormData({
+      title: tour.title,
+      description: tour.description,
+      price: tour.price,
+      city: tour.city,
+      image_url: tour.image_url,
+      route_text: tour.route_text || '',
+      map_url: tour.map_url || '',
+    });
     setIsModalOpen(true);
   };
 
@@ -461,9 +469,11 @@ function AdminPage() {
                  <input required type="number" placeholder="Price (KZT)" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="admin-form-input" />
                  <input type="text" placeholder="City" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="admin-form-input" />
                  <input type="text" placeholder="Image URL" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="admin-form-input" />
+                 <input type="text" placeholder="Google Maps URL (route)" value={formData.map_url} onChange={e => setFormData({...formData, map_url: e.target.value})} className="admin-form-input" />
                </div>
                <div className="admin-form-inner full">
                  <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="admin-form-input" rows="3" style={{ height: 'auto', fontFamily: 'inherit' }}></textarea>
+                 <textarea placeholder="Route text (e.g. A → B → C)" value={formData.route_text} onChange={e => setFormData({...formData, route_text: e.target.value})} className="admin-form-input" rows="2" style={{ height: 'auto', fontFamily: 'inherit', marginTop: '12px' }}></textarea>
                </div>
                <div className="admin-form-actions">
                  <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>

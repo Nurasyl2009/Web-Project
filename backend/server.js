@@ -10,6 +10,7 @@ const contactRoute = require('./routes/contactRoute');
 const adminRoutes = require('./routes/adminRoutes');
 const favoriteRoutes = require('./routes/favoriteRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const cityRoutes = require('./routes/cityRoutes');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/contact', contactRoute);
 app.use('/api/admin', adminRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/cities', cityRoutes);
 
 // Суреттер орналасқан (uploads) папкасын статикалық түрде көруге ашу
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
