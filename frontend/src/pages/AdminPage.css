@@ -203,9 +203,9 @@
   overflow: hidden;
 }
 .admin-metric-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px);
   border-color: #0ea5e9;
-  box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.3);
+  box-shadow: 0 12px 40px -10px rgba(14, 165, 233, 0.4);
 }
 
 .admin-metric-card::before {
@@ -338,6 +338,17 @@
   box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
 }
 
+.btn-export {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #282a36;
+  color: #c7cddf;
+}
+.btn-export:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: #3e4153;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -374,6 +385,15 @@
   justify-content: center;
   font-size: 0.8rem;
   color: #fff;
+}
+
+.tour-thumb {
+  width: 48px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #0f1015;
+  border: 1px solid #282a36;
 }
 
 .admin-table tbody tr {

@@ -331,16 +331,15 @@ function ProfilePage() {
                     <div className="purchase-item__icon">✈️</div>
                     <div className="purchase-item__info">
                       <strong className="purchase-item__city">{p.city}</strong>
-                      <span className="purchase-item__name">{p.name}</span>
-                      {p.created_at && (
-                        <span className="purchase-item__date">
-                          {new Date(p.created_at).toLocaleDateString('kk-KZ', {
-                            year: 'numeric', month: 'long', day: 'numeric'
-                          })}
-                        </span>
-                      )}
+                      <div className="purchase-item__meta" style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '4px' }}>
+                        <span>👤 {p.guests_count || 1} адам</span> • 
+                        <span> 💰 {parseInt(p.total_amount || 0).toLocaleString('kk-KZ')} ₸</span>
+                      </div>
+                      <div className="purchase-item__meta" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
+                        📅 Саяхат күні: <strong>{p.tour_date ? new Date(p.tour_date).toLocaleDateString('kk-KZ') : '---'}</strong>
+                      </div>
                     </div>
-                    <div className="purchase-item__badge">Сәтті ✓</div>
+                    <div className="purchase-item__badge" style={{ marginLeft: 'auto' }}>Сәтті ✓</div>
                   </div>
                 ))}
               </div>

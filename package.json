@@ -1,5 +1,12 @@
 {
+  "name": "travelway-project",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && node server.js"
+  },
   "dependencies": {
     "react-hot-toast": "^2.6.0"
   }
 }
+

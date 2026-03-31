@@ -4,7 +4,7 @@ import Notification from '../components/Notification';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement
 } from 'chart.js';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import './AdminPage.css';
 
 ChartJS.register(
@@ -23,7 +23,7 @@ function AdminPage() {
   const [users, setUsers] = useState([]);
   const [tours, setTours] = useState([]);
   const [payments, setPayments] = useState([]);
-  const [stats, setStats] = useState({ popularCities: [], revenueByCity: [] });
+  const [stats, setStats] = useState({ popularCities: [], revenueByCity: [], revenueTrend: [] });
   const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
 
@@ -90,7 +90,11 @@ function AdminPage() {
       const res = await fetch('/api/admin/stats', { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
-        setStats({ popularCities: data.popularCities, revenueByCity: data.revenueByCity });
+        setStats({ 
+          popularCities: data.popularCities, 
+          revenueByCity: data.revenueByCity,
+          revenueTrend: data.revenueTrend || [] 
+        });
       }
     } catch { console.error("Stats қатесі"); }
   };
@@ -127,6 +131,42 @@ function AdminPage() {
     } catch { showMsg('Өшіру кезінде қате кетті', 'error'); }
   };
 
+  const handleDeleteUser = async (id) => {
+    if (id === currentUser.id) return showMsg('Өзіңізді өшіре алмайсыз', 'error');
+    if (!window.confirm("Бұл пайдаланушыны өшіргіңіз келетініне сенімдісіз бе?")) return;
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      const data = await res.json();
+      if (data.success) {
+        showMsg('Пайдаланушы өшірілді', 'success');
+        fetchUsers();
+      } else {
+        showMsg(data.message || 'Қате', 'error');
+      }
+    } catch { showMsg('Қате кетті', 'error'); }
+  };
+
+  const handleExportCSV = () => {
+    if (payments.length === 0) return showMsg('Экспорттайтын деректер жоқ', 'error');
+    const headers = ['ID', 'Client', 'City', 'Guests', 'Amount', 'Tour Date', 'Card', 'Created At'];
+    const rows = payments.map(p => [
+      p.id, 
+      p.name, 
+      p.city, 
+      p.guests_count || 1, 
+      p.total_amount || 450000,
+      p.tour_date ? new Date(p.tour_date).toLocaleDateString() : '---',
+      `****${p.number.slice(-4)}`, 
+      new Date(p.created_at).toLocaleString()
+    ]);
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `payments_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  };
+
   const openCreateModal = () => {
     setEditingTour(null);
     setFormData({ title: '', description: '', price: '', city: '', image_url: '', route_text: '', map_url: '' });
@@ -147,8 +187,24 @@ function AdminPage() {
     setIsModalOpen(true);
   };
 
+  const fixMapUrl = (url = '') => {
+    if (!url) return '';
+    let processed = url.trim();
+    // Extract src from iframe if pasted whole tag
+    if (processed.includes('<iframe')) {
+      const match = processed.match(/src="([^"]+)"/);
+      if (match) processed = match[1];
+    }
+    // Auto-append &output=embed for standard Google Maps links
+    if (processed.includes('google.com/maps') && !processed.includes('output=embed') && !processed.includes('/maps/embed')) {
+      processed = processed.includes('?') ? `${processed}&output=embed` : `${processed}?output=embed`;
+    }
+    return processed;
+  };
+
   const handleTourSubmit = async (e) => {
     e.preventDefault();
+    const fixedData = { ...formData, map_url: fixMapUrl(formData.map_url) };
     const url = editingTour ? `/api/admin/tours/${editingTour.id}` : '/api/admin/tours';
     const method = editingTour ? 'PUT' : 'POST';
 
@@ -156,7 +212,7 @@ function AdminPage() {
       const res = await fetch(url, {
         method,
         headers: getAuthHeaders(),
-        body: JSON.stringify(formData),
+        body: JSON.stringify(fixedData),
       });
       const data = await res.json();
       if (data.success) {
@@ -276,22 +332,58 @@ function AdminPage() {
                     <div className="admin-metric-value">{totalBookings}</div>
                     <div className="admin-metric-trend trend-down">↓ -2 this week</div>
                   </div>
-                </div>
-                
-                <div className="admin-charts-grid">
-                  <div className="admin-chart-card">
-                     <h3 className="admin-chart-title">User Bookings Growth</h3>
-                     {stats.popularCities.length > 0 ? (
-                       <Bar 
-                          data={{
-                            labels: stats.popularCities.map(c => c.city || 'Белгісіз'),
-                            datasets: [{
-                              label: 'Бронь саны',
-                              data: stats.popularCities.map(c => c.bookings),
-                              backgroundColor: 'rgba(14, 165, 233, 0.8)',
-                              borderRadius: 6,
-                            }]
-                          }}
+                    <div className="admin-metric-card">
+                      <div className="admin-metric-header">Total Tours</div>
+                      <div className="admin-metric-value">{tours.length}</div>
+                      <div className="admin-metric-trend trend-up">↑ +2 new</div>
+                    </div>
+                  </div>
+                  
+                  <div className="admin-charts-grid">
+                    <div className="admin-chart-card">
+                       <h3 className="admin-chart-title">Revenue Trend (Last 14 Days)</h3>
+                       {stats.revenueTrend && stats.revenueTrend.length > 0 ? (
+                         <Line 
+                            data={{
+                              labels: stats.revenueTrend.map(r => r.label),
+                              datasets: [{
+                                label: 'Табыс (₸)',
+                                data: stats.revenueTrend.map(r => r.value),
+                                borderColor: '#0ea5e9',
+                                backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                              }]
+                            }}
+                            options={{ 
+                              responsive: true, 
+                              plugins: { legend: { display: false } },
+                              scales: {
+                                y: { ticks: { color: '#646a80' }, grid: { color: '#282a36' } },
+                                x: { ticks: { color: '#646a80' }, grid: { display: false } }
+                              }
+                            }}
+                          />
+                       ) : (
+                         <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                           <p style={{ color: '#646a80'}}>No trend data available</p>
+                         </div>
+                       )}
+                    </div>
+                    
+                    <div className="admin-chart-card">
+                       <h3 className="admin-chart-title">Popular Destinations</h3>
+                       {stats.popularCities.length > 0 ? (
+                         <Bar 
+                            data={{
+                              labels: stats.popularCities.map(c => c.city || 'Белгісіз'),
+                              datasets: [{
+                                label: 'Бронь саны',
+                                data: stats.popularCities.map(c => c.bookings),
+                                backgroundColor: 'rgba(14, 165, 233, 0.8)',
+                                borderRadius: 6,
+                              }]
+                            }}
                           options={{ 
                             responsive: true, 
                             plugins: { legend: { display: false } },
@@ -337,7 +429,7 @@ function AdminPage() {
                   </div>
                   <table className="admin-table">
                     <thead>
-                      <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr>
+                      <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                       {filteredUsers.length === 0 ? (
@@ -368,6 +460,11 @@ function AdminPage() {
                               </span>
                             </td>
                             <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                            <td>
+                              {u.id !== currentUser.id && (
+                                <button className="btn-action delete" onClick={() => handleDeleteUser(u.id)} title="Delete User">🗑️</button>
+                              )}
+                            </td>
                           </tr>
                         ))
                       )}
@@ -389,15 +486,18 @@ function AdminPage() {
                   </div>
                   <table className="admin-table">
                     <thead>
-                      <tr><th>ID</th><th>Title</th><th>Price</th><th>City</th><th>Actions</th></tr>
+                      <tr><th>ID</th><th>Image</th><th>Title</th><th>Price</th><th>City</th><th>Actions</th></tr>
                     </thead>
                     <tbody>
                       {filteredTours.length === 0 ? (
-                        <tr><td colSpan="5" style={{textAlign: 'center'}}>No tours found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="6" style={{textAlign: 'center'}}>No tours found matching "{searchQuery}"</td></tr>
                       ) : (
                         filteredTours.map(t => (
                           <tr key={t.id}>
                             <td>#{t.id}</td>
+                            <td>
+                              <img src={t.image_url} alt={t.title} className="tour-thumb" />
+                            </td>
                             <td style={{ color: '#fff' }}>{t.title}</td>
                             <td style={{ color: '#10b981', fontWeight: 'bold' }}>{t.price} ₸</td>
                             <td>{t.city}</td>
@@ -424,22 +524,27 @@ function AdminPage() {
                 <div className="admin-table-wrapper">
                   <div className="admin-table-header">
                     <h3>Recent Bookings ({filteredPayments.length})</h3>
+                    <button className="admin-btn btn-export" onClick={handleExportCSV}>📥 Export CSV</button>
                   </div>
                   <table className="admin-table">
                     <thead>
-                      <tr><th>ID</th><th>Client</th><th>Card</th><th>City</th><th>Date</th></tr>
+                      <tr><th>ID</th><th>Client</th><th>Guests</th><th>City</th><th>Tour Date</th><th>Amount</th><th>Date</th></tr>
                     </thead>
                     <tbody>
                       {filteredPayments.length === 0 ? (
-                        <tr><td colSpan="5" style={{textAlign: 'center'}}>No payments found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="7" style={{textAlign: 'center'}}>No payments found matching "{searchQuery}"</td></tr>
                       ) : (
                         filteredPayments.map(p => (
                           <tr key={p.id}>
                             <td>#{p.id}</td>
                             <td style={{ color: '#fff' }}>{p.name}</td>
-                            <td>{p.number.slice(0, 4)} •••• •••• {p.number.slice(-4)}</td>
+                            <td>{p.guests_count || 1} адам</td>
                             <td>{p.city}</td>
-                            <td>{new Date(p.created_at).toLocaleString()}</td>
+                            <td>{p.tour_date ? new Date(p.tour_date).toLocaleDateString('kk-KZ') : '---'}</td>
+                            <td style={{ color: '#10b981', fontWeight: '800' }}>
+                              {(p.total_amount || 0).toLocaleString('kk-KZ')} ₸
+                            </td>
+                            <td>{new Date(p.created_at).toLocaleDateString()}</td>
                           </tr>
                         ))
                       )}
@@ -470,6 +575,9 @@ function AdminPage() {
                  <input type="text" placeholder="City" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="admin-form-input" />
                  <input type="text" placeholder="Image URL" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="admin-form-input" />
                  <input type="text" placeholder="Google Maps URL (route)" value={formData.map_url} onChange={e => setFormData({...formData, map_url: e.target.value})} className="admin-form-input" />
+                 <p style={{ gridColumn: '1 / -1', fontSize: '0.75rem', color: '#646a80', marginTop: '-10px', marginBottom: '4px' }}>
+                   💡 Кеңес: Карта дұрыс көрінуі үшін 'Embed map' (Бөлісу → Картаны ендіру) кодын пайдаланған жөн.
+                 </p>
                </div>
                <div className="admin-form-inner full">
                  <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="admin-form-input" rows="3" style={{ height: 'auto', fontFamily: 'inherit' }}></textarea>

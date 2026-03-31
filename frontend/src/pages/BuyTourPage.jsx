@@ -36,13 +36,24 @@ function BuyTourPage() {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [availableSpots, setAvailableSpots] = useState(null);
+  const [guestsCount, setGuestsCount] = useState(1);
+  const [tours, setTours] = useState([]);
 
   const [receipt, setReceipt] = useState(null); // { name, city, createdAt }
 
-  // Autofill user name if logged in
+  // Autofill user name and fetch tours
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.name) setName(user.name);
+    
+    const fetchTours = async () => {
+      try {
+        const res = await fetch('/api/tours');
+        const data = await res.json();
+        setTours(data);
+      } catch (err) { console.error("Tours fetch error", err); }
+    };
+    fetchTours();
   }, []);
 
   // Check Availability dynamically
@@ -103,7 +114,8 @@ function BuyTourPage() {
         setReceipt({
           name: payload.name,
           city: payload.city,
-          amount: data.amount || '450,000 ₸', // Default fallback
+          amount: (data.amount || 0).toLocaleString('kk-KZ') + ' ₸',
+          guests: data.guests || payload.guestsCount,
           date: new Date().toLocaleString(),
           tourDate: payload.tourDate,
           method: method === 'kaspi' ? 'Kaspi Gold' : (method === 'halyk' ? 'Halyk Bank' : 'Банк картасы')
@@ -126,7 +138,14 @@ function BuyTourPage() {
       setNotification({ message: err, type: 'error' });
       return;
     }
-    submitPayment({ name, number: number.replace(/\D/g, ''), city, cvv, tourDate });
+    submitPayment({ 
+      name, 
+      number: number.replace(/\D/g, ''), 
+      city, 
+      cvv, 
+      tourDate,
+      guestsCount 
+    });
   };
 
 
@@ -160,6 +179,10 @@ function BuyTourPage() {
             <div className="receipt-row">
               <span>Төлем әдісі:</span>
               <strong>{receipt.method}</strong>
+            </div>
+            <div className="receipt-row">
+              <span>Адам саны:</span>
+              <strong>{receipt.guests} адам</strong>
             </div>
             <div className="receipt-row">
               <span>Уақыты:</span>
@@ -288,19 +311,53 @@ function BuyTourPage() {
                 />
               </div>
             </div>
-            
-            <div className="form-group" style={{ width: '50%' }}>
-              <label htmlFor="cvv">CVV</label>
-              <input
-                id="cvv"
-                type="password"
-                className="form-input"
-                placeholder="000"
-                maxLength={3}
-                value={cvv}
-                onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                inputMode="numeric"
-              />
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="guests-count">Адам саны</label>
+                <select 
+                  id="guests-count" 
+                  className="form-input" 
+                  value={guestsCount} 
+                  onChange={(e) => setGuestsCount(parseInt(e.target.value))}
+                >
+                  {[1,2,3,4,5,6,10].map(n => <option key={n} value={n}>{n} адам</option>)}
+                </select>
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="cvv">CVV</label>
+                <input
+                  id="cvv"
+                  type="password"
+                  className="form-input"
+                  placeholder="000"
+                  maxLength={3}
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
+
+            <div className="total-price-box" style={{ 
+              background: 'rgba(14, 165, 233, 0.05)', 
+              padding: '1.25rem', 
+              borderRadius: '12px', 
+              marginBottom: '1.5rem',
+              border: '1px dashed #0ea5e9'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ color: '#646a80', fontSize: '0.9rem' }}>Жалпы сома:</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: '800', color: '#fff' }}>
+                  {(() => {
+                    const tour = tours.find(t => t.city === city);
+                    const priceStr = tour ? tour.price.replace(/[^\d]/g, '') : '450000';
+                    const price = parseInt(priceStr, 10);
+                    return (price * guestsCount).toLocaleString('kk-KZ') + ' ₸';
+                  })()}
+                </span>
+              </div>
             </div>
 
             {/* Бос орындар индикаторы */}

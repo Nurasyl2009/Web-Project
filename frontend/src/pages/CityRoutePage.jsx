@@ -59,9 +59,12 @@ function CityRoutePage() {
 
       {/* Map */}
       <div className="map-container">
-        {data.map_url && (data.map_url.includes('/maps/embed') || data.map_url.includes('output=embed')) ? (
+        {data.map_url && (data.map_url.includes('google.com/maps') || data.map_url.includes('maps.google.com')) ? (
           <iframe
-            src={data.map_url}
+            src={data.map_url.includes('output=embed') || data.map_url.includes('/maps/embed') 
+              ? data.map_url 
+              : (data.map_url.includes('?') ? `${data.map_url}&output=embed` : `${data.map_url}?output=embed`)
+            }
             title={`${data.name} картасы`}
             allowFullScreen
             loading="lazy"
