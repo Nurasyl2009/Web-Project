@@ -9,11 +9,13 @@ async function initDatabase() {
     await client.query(`
       -- Users table for authentication
       CREATE TABLE IF NOT EXISTS users (
-        id       SERIAL PRIMARY KEY,
-        name     VARCHAR(100) NOT NULL,
-        email    VARCHAR(150) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
+        id          SERIAL PRIMARY KEY,
+        name        VARCHAR(100) NOT NULL,
+        email       VARCHAR(150) UNIQUE NOT NULL,
+        password    VARCHAR(255) NOT NULL,
+        role        VARCHAR(20) DEFAULT 'user',
+        avatar_url  TEXT,
+        created_at  TIMESTAMP DEFAULT NOW()
       );
     `);
 
@@ -32,45 +34,52 @@ async function initDatabase() {
       );
     `);
 
-    // Ensure columns exist for older databases
-    await client.query(`
-      ALTER TABLE tours
-      ADD COLUMN IF NOT EXISTS map_url TEXT,
-      ADD COLUMN IF NOT EXISTS route_text TEXT;
-    `);
-
     await client.query(`
       -- Payments / purchases table
       CREATE TABLE IF NOT EXISTS payment (
-        id         SERIAL PRIMARY KEY,
-        name       VARCHAR(100) NOT NULL,
-        number     VARCHAR(16) NOT NULL,
-        city       VARCHAR(100),
-        cvv        VARCHAR(3) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
+        id            SERIAL PRIMARY KEY,
+        name          VARCHAR(100) NOT NULL,
+        number        VARCHAR(16) NOT NULL,
+        city          VARCHAR(100),
+        cvv           VARCHAR(3) NOT NULL,
+        tour_date     DATE,
+        guests_count  INTEGER DEFAULT 1,
+        total_amount  INTEGER,
+        created_at    TIMESTAMP DEFAULT NOW()
       );
     `);
 
     await client.query(`
       -- Contact messages
       CREATE TABLE IF NOT EXISTS contacts (
-        id         SERIAL PRIMARY KEY,
-        name       VARCHAR(100) NOT NULL,
-        email      VARCHAR(150) NOT NULL,
-        message    TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW()
+        id          SERIAL PRIMARY KEY,
+        name        VARCHAR(100) NOT NULL,
+        email       VARCHAR(150) NOT NULL,
+        message     TEXT NOT NULL,
+        created_at  TIMESTAMP DEFAULT NOW()
       );
     `);
 
     await client.query(`
       -- Reviews
       CREATE TABLE IF NOT EXISTS reviews (
-        id         SERIAL PRIMARY KEY,
-        user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
-        city       VARCHAR(100),
-        rating     INTEGER CHECK (rating BETWEEN 1 AND 5),
-        text       TEXT,
-        created_at TIMESTAMP DEFAULT NOW()
+        id          SERIAL PRIMARY KEY,
+        user_id     INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        city        VARCHAR(100),
+        rating      INTEGER CHECK (rating BETWEEN 1 AND 5),
+        text        TEXT,
+        created_at  TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      -- Favorites
+      CREATE TABLE IF NOT EXISTS favorites (
+        id          SERIAL PRIMARY KEY,
+        user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        tour_id     INTEGER REFERENCES tours(id) ON DELETE CASCADE,
+        created_at  TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, tour_id)
       );
     `);
 

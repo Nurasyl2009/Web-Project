@@ -51,7 +51,7 @@ router.get('/history', authMiddleware, async (req, res) => {
     }
     const userName = userResult.rows[0].name;
     const result = await pool.query(
-      'SELECT name, city, tour_date, created_at FROM payment WHERE name = $1 ORDER BY created_at DESC',
+      'SELECT name, city, tour_date, guests_count, total_amount, created_at FROM payment WHERE name = $1 ORDER BY created_at DESC',
       [userName]
     );
     res.json({ success: true, purchases: result.rows });
@@ -62,12 +62,14 @@ router.get('/history', authMiddleware, async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, number, city, cvv, tourDate } = req.body;
+  const { name, number, city, cvv, tourDate, guestsCount } = req.body;
 
   if (!name || !number || !city || !cvv || !tourDate) {
     return res.status(400).json({ success: false, message: 'Барлық өрістерді толтырыңыз (Күнді таңдау міндетті)' });
   }
+  const guests = parseInt(guestsCount, 10) || 1;
   const digits = String(number).replace(/\D/g, '');
+  
   if (digits.length !== 16) {
     return res.status(400).json({ success: false, message: 'Карта нөмірі 16 санды болуы керек' });
   }
@@ -85,21 +87,26 @@ router.post('/', async (req, res) => {
       [city, tourDate]
     );
     const booked = parseInt(checkRes.rows[0].count, 10) || 0;
-    if (booked >= MAX_SPOTS) {
-      return res.status(400).json({ success: false, message: 'Бұл күнге орын таусылған! Басқа күнді таңдаңыз.' });
+    if (booked + guests > MAX_SPOTS) {
+      return res.status(400).json({ success: false, message: 'Орын жеткіліксіз! Бос орындар: ' + (MAX_SPOTS - booked) });
     }
 
-    // 2. Process purchase
+    // 2. Fetch tour price to calculate total
+    const tourRes = await pool.query('SELECT price FROM tours WHERE city = $1 LIMIT 1', [city]);
+    const tourPrice = tourRes.rows[0]?.price || 450000;
+    const totalAmount = tourPrice * guests;
+
+    // 3. Process purchase
     await pool.query(
-      'INSERT INTO payment (name, number, city, cvv, tour_date) VALUES ($1, $2, $3, $4, $5)',
-      [name, digits, city, cvv, tourDate]
+      'INSERT INTO payment (name, number, city, cvv, tour_date, guests_count, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [name, digits, city, cvv, tourDate, guests, totalAmount]
     );
 
     res.json({ 
       success: true, 
       message: 'Тур сәтті брондалды!',
-      amount: '450,000 ₸', // Simulated total amount
-      bookedSpots: booked + 1
+      amount: totalAmount,
+      guests: guests
     });
 
   } catch (err) {

@@ -15,6 +15,24 @@ router.get('/users', adminMiddleware, async (req, res) => {
   }
 });
 
+// Delete a user
+router.get('/users/:id', adminMiddleware, async (req, res) => {
+  // Not needed for now, but good to have
+});
+
+router.delete('/users/:id', adminMiddleware, async (req, res) => {
+  const targetId = parseInt(req.params.id, 10);
+  // Prevent self-deletion if req.user.id is available (depends on middleware)
+  try {
+    const result = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [targetId]);
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Табылмады' });
+    res.json({ success: true, message: 'Пайдаланушы өшірілді' });
+  } catch (err) {
+    console.error('Delete user қатесі:', err.message);
+    res.status(500).json({ success: false, message: 'Серверлік қате' });
+  }
+});
+
 // Get all tours
 router.get('/tours', adminMiddleware, async (req, res) => {
   try {
@@ -61,7 +79,7 @@ router.delete('/tours/:id', adminMiddleware, async (req, res) => {
 // Get all payments (orders)
 router.get('/payments', adminMiddleware, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM payment ORDER BY created_at DESC');
+    const result = await pool.query('SELECT *, guests_count, total_amount FROM payment ORDER BY created_at DESC');
     res.json({ success: true, payments: result.rows });
   } catch (err) {
     console.error('Admin payments қатесі:', err.message);
@@ -128,10 +146,23 @@ router.get('/stats', adminMiddleware, async (req, res) => {
       ORDER BY revenue DESC
     `);
     
+    // Revenue trend (last 14 days)
+    const trendResult = await pool.query(`
+      SELECT 
+        TO_CHAR(p.created_at, 'DD.MM') as label,
+        SUM(t.price) as value
+      FROM payment p
+      LEFT JOIN tours t ON p.city = t.city
+      WHERE p.created_at >= NOW() - INTERVAL '14 days'
+      GROUP BY TO_CHAR(p.created_at, 'DD.MM'), p.created_at
+      ORDER BY p.created_at ASC
+    `);
+    
     res.json({
       success: true,
       popularCities: citiesResult.rows.map(r => ({ city: r.city, bookings: parseInt(r.bookings, 10) })),
-      revenueByCity: revenueResult.rows.map(r => ({ city: r.city, revenue: parseInt(r.revenue, 10) }))
+      revenueByCity: revenueResult.rows.map(r => ({ city: r.city, revenue: parseInt(r.revenue, 10) })),
+      revenueTrend: trendResult.rows.map(r => ({ label: r.label, value: parseInt(r.value, 10) || 0 }))
     });
   } catch (err) {
     console.error('Admin stats қатесі:', err.message);
