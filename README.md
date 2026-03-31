@@ -1,130 +1,83 @@
-# TravelWay ✈️ — Саяхат агенттігі веб-сайты
+## TravelWay — fullstack web app
 
-Еуропалық турларға арналған толыққанды веб-қосымша. React + Vite (frontend) және Node.js + Express + PostgreSQL (backend).
+Монорепозиторий с:
 
-## 📸 Мүмкіндіктер
+- **frontend**: React + Vite (dev-сервер на `http://localhost:3000`, проксирует `/api` на backend)
+- **backend**: Node.js + Express + PostgreSQL (API на `http://localhost:5000`)
 
-- 🌍 Еуропалық турларды көру (Париж, Рим, Берлин, Мадрид)
-- 🗺️ Интерактивті қала маршруттары Google Maps-пен
-- 💳 Тур сатып алу (Luhn карта валидациясы)
-- 🔐 Пайдаланушыны тіркеу және жүйеге кіру (JWT)
-- 📬 Байланыс формасы
-- 📱 Барлық құрылғыларда жұмыс істейді (responsive)
+### Стек
 
-## 🛠️ Технологиялар
+- **Frontend**: React 18, Vite, React Router, Chart.js
+- **Backend**: Express, pg, JWT (jsonwebtoken), bcryptjs, multer
+- **DB**: PostgreSQL
 
-| Layer    | Технология                          |
-|----------|--------------------------------------|
-| Frontend | React 18, Vite, React Router v6      |
-| Backend  | Node.js, Express 4                   |
-| Database | PostgreSQL (pg driver)               |
-| Auth     | JWT (jsonwebtoken), bcryptjs         |
-| Style    | Vanilla CSS (design system)          |
-
-## 📁 Файл құрылымы
+### Структура проекта
 
 ```
-Project AI/
-├── client/                  # React frontend (Vite)
-│   ├── src/
-│   │   ├── components/      # Header, Footer, TourCard, CityCard, etc.
-│   │   ├── pages/           # HomePage, ToursPage, BuyTourPage, etc.
-│   │   ├── App.jsx          # React Router routes
-│   │   ├── main.jsx         # Entry point
-│   │   └── index.css        # Global styles / design system
-│   ├── index.html
-│   └── package.json
-├── routes/                  # Express API route handlers
-│   ├── authRoutes.js        # POST /api/auth/register, /login
-│   ├── tourRoutes.js        # GET/POST/PUT/DELETE /api/tours
-│   ├── purchaseRoute.js     # POST /api/buy
-│   └── contactRoute.js      # POST /api/contact
-├── middleware/
-│   ├── auth.js              # JWT verification middleware
-│   └── luhn.js              # Luhn card validation
-├── js/
-│   └── db.js                # PostgreSQL pool connection
-├── server.js                # Express app entry point
-├── init-db.js               # Database table creation script
-└── package.json
+Project/
+├─ frontend/                 # React + Vite
+│  ├─ src/
+│  ├─ index.html
+│  └─ vite.config.js         # proxy /api -> http://localhost:5000
+├─ backend/                  # Express API + DB + миграции
+│  ├─ routes/
+│  ├─ middleware/
+│  ├─ js/                    # db connection (pg Pool)
+│  ├─ uploads/               # загружаемые файлы (runtime, не коммитится)
+│  ├─ init-db.js
+│  └─ server.js
+└─ README.md
 ```
 
-## 🚀 Орнату және іске қосу
+### Запуск (dev)
 
-### 1. PostgreSQL базасын дайындаңыз
+#### 1) База данных
+
+Создай БД (пример):
 
 ```sql
 CREATE DATABASE "Tur";
 ```
 
-Содан кейін `js/db.js` файлындағы мәліметтерді өз реквизиттеріңізге сай өзгертіңіз.
+Настройки подключения сейчас захардкожены в `backend/js/db.js` — при необходимости измени `user/host/database/password/port` под свою среду.
 
-### 2. Backend орнату
+#### 2) Backend
 
 ```bash
-# Жоба қалтасында:
+cd backend
 npm install
-
-# Кестелерді жасаңыз:
 node init-db.js
-
-# Серверді іске қосыңыз:
-node server.js
+npm run dev
 ```
 
-Сервер `http://localhost:3000` мекен-жайында іске қосылады.
+Backend стартует на `http://localhost:5000`.
 
-### 3. Frontend орнату (даму режимі)
+#### 3) Frontend
 
 ```bash
-cd client
+cd frontend
 npm install
 npm run dev
 ```
 
-React қосымшасы `http://localhost:5173` мекен-жайында іске қосылады (backend proxy арқылы).
+Frontend стартует на `http://localhost:3000` и обращается к API через прокси (`/api` -> `http://localhost:5000`).
 
-### 4. Production build
+### Сборка (production)
 
 ```bash
-cd client
+cd frontend
 npm run build
-# Содан кейін:
-cd ..
-node server.js
+cd ../backend
+npm start
 ```
 
-## 🔌 API эндпоинттері
+Backend будет раздавать статическую сборку из `frontend/dist`.
 
-| Метод  | Маршрут                | Сипаттама                         |
-|--------|------------------------|-----------------------------------|
-| POST   | /api/auth/register     | Пайдаланушы тіркеу                |
-| POST   | /api/auth/login        | Жүйеге кіру → JWT қайтарады       |
-| GET    | /api/tours             | Барлық турлар тізімі              |
-| GET    | /api/tours/:id         | Бір тур мәліметтері               |
-| POST   | /api/tours             | Жаңа тур қосу (авторизация керек) |
-| PUT    | /api/tours/:id         | Турды жаңарту (авторизация керек) |
-| DELETE | /api/tours/:id         | Турды жою (авторизация керек)     |
-| POST   | /api/buy               | Тур сатып алу (Luhn тексерілді)   |
-| POST   | /api/contact           | Байланыс формасы                  |
+### API (основное)
 
-## 🔐 Аутентификация
+- **Auth**: `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- **Tours**: `GET /api/tours` (+ остальные CRUD внутри `backend/routes/tourRoutes.js`)
+- **Other**: `POST /api/buy`, `POST /api/contact`, `POST /api/upload`, `GET/POST /api/favorites`, `GET/POST /api/admin` (если включено)
 
-JWT Bearer токен арқылы авторизацияланған эндпоинттерге қол жеткізіңіз:
-
-```
-Authorization: Bearer <your_jwt_token>
-```
-
-## ✅ Тестілеу нәтижелері
-
-- ✅ Chrome — мінсіз жұмыс істейді
-- ✅ Firefox — мінсіз жұмыс істейді
-- ✅ Мобильді (375px) — responsive
-- ✅ Планшет (768px) — responsive
-- ✅ 4K (2560px) — responsive
-- ✅ Консольде JavaScript қателері жоқ
-- ✅ API Postman арқылы тексерілді
-
-## 👤 Қабдыкәдіров Нұрасыл
+Статика загрузок: `GET /uploads/<filename>`.
 
