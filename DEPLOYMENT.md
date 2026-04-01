@@ -37,14 +37,25 @@ npm start
 5. Environment variables (ұсыныс):
 
 - `PORT=5000` (Render автоматты береді)
-- `JWT_SECRET=<your_strong_secret>`
-- `DB_HOST=<host>`
-- `DB_PORT=<port>`
-- `DB_NAME=<database>`
-- `DB_USER=<user>`
-- `DB_PASSWORD=<password>`
+- `JWT_SECRET=<күрделі_құпия_сөз>`
+- `DB_HOST=<database_host_from_render>`
+- `DB_USER=<database_username>`
+- `DB_PASSWORD=<database_password>`
+- `DB_NAME=<database_name>`
+- `DB_PORT=5432` (әдетте 5432)
 
-Ескерту: ағымдағы кодта DB конфигурациясы `backend/js/db.js` ішінде жазылған. Production үшін env айнымалыларына көшіру ұсынылады.
+### 3.1 Render Build & Start Settings
+1. **Build Command:**
+   ```bash
+   npm run build
+   ```
+   (Бұл түпкі `package.json`-дағы скриптті іске қосады: frontend-ті құрастырып, backend-тің dependencies-ін орнатады)
+
+2. **Start Command:**
+   ```bash
+   npm start
+   ```
+   (Бұл `node backend/init-db.js && node backend/server.js` командасын орындайды)
 
 ## 4) Database
 
