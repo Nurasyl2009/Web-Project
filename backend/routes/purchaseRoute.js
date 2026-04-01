@@ -21,7 +21,7 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// GET /api/buy/availability - Күн бойынша бос орындарды тексеру
+// GET /api/buy/availability 
 router.get('/availability', async (req, res) => {
   const { city, date } = req.query;
   if (!city || !date) {
@@ -42,7 +42,7 @@ router.get('/availability', async (req, res) => {
   }
 });
 
-// GET /api/buy/history — purchase history for logged-in user
+// GET /api/buy/history 
 router.get('/history', authMiddleware, async (req, res) => {
   try {
     const userResult = await pool.query('SELECT name FROM users WHERE id = $1', [req.user.id]);
@@ -69,7 +69,7 @@ router.post('/', async (req, res) => {
   }
   const guests = parseInt(guestsCount, 10) || 1;
   const digits = String(number).replace(/\D/g, '');
-  
+
   if (digits.length !== 16) {
     return res.status(400).json({ success: false, message: 'Карта нөмірі 16 санды болуы керек' });
   }
@@ -81,7 +81,6 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // 1. Availability check before purchase
     const checkRes = await pool.query(
       'SELECT COUNT(*) FROM payment WHERE city = $1 AND tour_date = $2',
       [city, tourDate]
@@ -91,19 +90,16 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Орын жеткіліксіз! Бос орындар: ' + (MAX_SPOTS - booked) });
     }
 
-    // 2. Fetch tour price to calculate total
     const tourRes = await pool.query('SELECT price FROM tours WHERE city = $1 LIMIT 1', [city]);
     const tourPrice = tourRes.rows[0]?.price || 450000;
     const totalAmount = tourPrice * guests;
-
-    // 3. Process purchase
     await pool.query(
       'INSERT INTO payment (name, number, city, cvv, tour_date, guests_count, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       [name, digits, city, cvv, tourDate, guests, totalAmount]
     );
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Тур сәтті брондалды!',
       amount: totalAmount,
       guests: guests

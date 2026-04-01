@@ -12,7 +12,7 @@ function defaultMapUrl(cityName) {
   return q ? `https://maps.google.com/maps?q=${q}&output=embed` : '';
 }
 
-// GET /api/cities - list unique cities from tours
+// GET /api/cities 
 router.get('/', async (req, res) => {
   try {
     const rowsRes = await pool.query(`
@@ -58,17 +58,24 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/cities/:key - details by city name (encoded)
+// GET /api/cities/:key 
 router.get('/:key', async (req, res) => {
   try {
-    const cityName = decodeURIComponent(req.params.key || '').trim();
-    if (!cityName) return res.status(400).json({ success: false, message: 'Қала атауы бос' });
+    let cityName = (req.params.key || '').trim();
+    try {
+      cityName = decodeURIComponent(cityName);
+    } catch (e) {
+    }
+
+    console.log('--- City Query ---');
+    console.log('Raw key:', req.params.key);
+    console.log('Derived cityName:', cityName);
 
     const rowRes = await pool.query(
       `
       SELECT *
       FROM tours
-      WHERE city = $1
+      WHERE city ILIKE $1
       ORDER BY created_at DESC
       LIMIT 1
       `,

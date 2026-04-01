@@ -51,18 +51,15 @@ function CityRoutePage() {
 
   return (
     <>
-      {/* Hero */}
       <div className="route-hero" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)' }}>
         <h1>🗺️ {data.name} маршруты</h1>
         <p>{data.route_text || 'Төменде Google Maps маршрутын көре аласыз.'}</p>
       </div>
-
-      {/* Map */}
       <div className="map-container">
         {data.map_url && (data.map_url.includes('google.com/maps') || data.map_url.includes('maps.google.com')) ? (
           <iframe
-            src={data.map_url.includes('output=embed') || data.map_url.includes('/maps/embed') 
-              ? data.map_url 
+            src={data.map_url.includes('output=embed') || data.map_url.includes('/maps/embed')
+              ? data.map_url
               : (data.map_url.includes('?') ? `${data.map_url}&output=embed` : `${data.map_url}?output=embed`)
             }
             title={`${data.name} картасы`}
@@ -94,8 +91,6 @@ function CityRoutePage() {
           </div>
         </div>
       )}
-
-      {/* Back Link */}
       <Link to="/cities" className="back-link">← Барлық қалаларға оралу</Link>
     </>
   );

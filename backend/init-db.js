@@ -4,7 +4,7 @@ const pool = require('./js/db');
 async function initDatabase() {
   const client = await pool.connect();
   try {
-    console.log('📦 Дерекқор кестелері жасалуда...');
+    console.log('Дерекқор кестелері жасалуда...');
 
     await client.query(`
       -- Users table for authentication
@@ -108,12 +108,12 @@ async function initDatabase() {
           'https://www.google.com/maps?q=Royal+Palace+of+Madrid+to+Prado+Museum+to+Puerta+del+Sol+to+El+Retiro,+Madrid'
         );
       `);
-      console.log('🌍 Демо турлар қосылды');
+      console.log(' Демо турлар қосылды');
     }
 
-    console.log('✅ Барлық кестелер дайын!');
+    console.log('Барлық кестелер дайын!');
   } catch (err) {
-    console.error('❌ Дерекқор қатесі:', err.message);
+    console.error('Дерекқор қатесі:', err.message);
     throw err;
   } finally {
     client.release();

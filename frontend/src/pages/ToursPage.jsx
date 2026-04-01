@@ -46,7 +46,7 @@ function ToursPage() {
   // Фильтр state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCity, setSelectedCity] = useState('');
-  const [maxPrice, setMaxPrice] = useState(1500000); // Default жоғары баға
+  const [maxPrice, setMaxPrice] = useState(1500000);
 
   useEffect(() => {
     const fetchTours = async () => {
@@ -84,14 +84,12 @@ function ToursPage() {
     fetchFavorites();
   }, []);
 
-  // Бағаны санға айналдыратын функция (егер стринг "450,000 ₸" болса)
   const parsePrice = (priceVal) => {
     if (typeof priceVal === 'number') return priceVal;
     if (typeof priceVal === 'string') return parseInt(priceVal.replace(/[^\d]/g, ''), 10) || 0;
     return 0;
   };
 
-  // Бірегей қалалар тізімі (Select үшін)
   const uniqueCities = useMemo(() => {
     const cities = new Set();
     tours.forEach(t => {
@@ -105,18 +103,15 @@ function ToursPage() {
   const filteredTours = useMemo(() => {
     return tours.filter((tour) => {
       const priceNum = parsePrice(tour.price);
-      
+
       const cityOrBadge = (tour.city || tour.badge || '').toLowerCase();
       const title = (tour.title || '').toLowerCase();
       const st = searchTerm.toLowerCase();
 
-      // 1. Іздеу сөзі бойынша
       const matchesSearch = title.includes(st) || cityOrBadge.includes(st);
-      
-      // 2. Таңдалған қала бойынша
+
       const matchesCity = selectedCity ? (tour.city === selectedCity || tour.badge === selectedCity) : true;
-      
-      // 3. Баға бойынша
+
       const matchesPrice = priceNum <= maxPrice;
 
       return matchesSearch && matchesCity && matchesPrice;
@@ -132,24 +127,23 @@ function ToursPage() {
 
       <section className="section" style={{ paddingTop: '2rem' }}>
         <div className="container">
-          
-          {/* Фильтр Панелі */}
+
           <div className="filter-bar">
             <div className="filter-group">
               <label>🔍 Іздеу:</label>
-              <input 
-                type="text" 
-                placeholder="Тур немесе қала..." 
-                value={searchTerm} 
+              <input
+                type="text"
+                placeholder="Тур немесе қала..."
+                value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="form-input"
               />
             </div>
-            
+
             <div className="filter-group">
               <label>📍 Бағыт (Қала):</label>
-              <select 
-                value={selectedCity} 
+              <select
+                value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
                 className="form-input"
               >
@@ -159,15 +153,15 @@ function ToursPage() {
                 ))}
               </select>
             </div>
-            
+
             <div className="filter-group range-group">
               <label>💰 Ең жоғарғы баға: <b>{maxPrice.toLocaleString('kk-KZ')} ₸</b></label>
-              <input 
-                type="range" 
-                min="50000" 
-                max="1500000" 
-                step="10000" 
-                value={maxPrice} 
+              <input
+                type="range"
+                min="50000"
+                max="1500000"
+                step="10000"
+                value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
                 className="range-slider"
               />
@@ -183,10 +177,10 @@ function ToursPage() {
               {filteredTours.length > 0 ? (
                 <div className="tours-grid">
                   {filteredTours.map((tour) => (
-                    <TourCard 
-                      key={tour.id} 
-                      tour={tour} 
-                      isFavoriteInit={favoriteIds.includes(tour.id)} 
+                    <TourCard
+                      key={tour.id}
+                      tour={tour}
+                      isFavoriteInit={favoriteIds.includes(tour.id)}
                     />
                   ))}
                 </div>

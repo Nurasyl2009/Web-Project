@@ -111,7 +111,7 @@ function ProfilePage() {
       return;
     }
 
-    const maxBytes = 2 * 1024 * 1024; // 2MB
+    const maxBytes = 2 * 1024 * 1024;
     if (file.size > maxBytes) {
       toast.error('Файл тым үлкен. Максимум 2MB.');
       return;
@@ -197,7 +197,6 @@ function ProfilePage() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="profile-stats">
         <div className="profile-stats__grid container">
           <div className="profile-stat">
@@ -215,7 +214,6 @@ function ProfilePage() {
         </div>
       </div>
 
-      {/* Body */}
       <div className="profile-body container">
         <div className="profile-tabs">
           <button
@@ -238,7 +236,6 @@ function ProfilePage() {
           </button>
         </div>
 
-        {/* Профиль қойындысы */}
         {activeTab === 'overview' && (
           <div className="profile-card">
             <div className="profile-card__header">
@@ -312,7 +309,6 @@ function ProfilePage() {
           </div>
         )}
 
-        {/* Тарих қойындысы */}
         {activeTab === 'purchases' && (
           <div className="profile-card">
             <div className="profile-card__header">
@@ -332,7 +328,7 @@ function ProfilePage() {
                     <div className="purchase-item__info">
                       <strong className="purchase-item__city">{p.city}</strong>
                       <div className="purchase-item__meta" style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '4px' }}>
-                        <span>👤 {p.guests_count || 1} адам</span> • 
+                        <span>👤 {p.guests_count || 1} адам</span> •
                         <span> 💰 {parseInt(p.total_amount || 0).toLocaleString('kk-KZ')} ₸</span>
                       </div>
                       <div className="purchase-item__meta" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
@@ -347,7 +343,6 @@ function ProfilePage() {
           </div>
         )}
 
-        {/* Таңдаулы қойындысы */}
         {activeTab === 'favorites' && (
           <div className="profile-card">
             <div className="profile-card__header">

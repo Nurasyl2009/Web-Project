@@ -18,7 +18,7 @@ function getInitials(name = '') {
 function AdminPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [tours, setTours] = useState([]);
@@ -79,7 +79,7 @@ function AdminPage() {
       const res = await fetch('/api/admin/payments', { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
-        const sorted = data.payments.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        const sorted = data.payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         setPayments(sorted);
       }
     } catch { showMsg('Сыртқы серверге қосылу қатесі', 'error'); }
@@ -90,10 +90,10 @@ function AdminPage() {
       const res = await fetch('/api/admin/stats', { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
-        setStats({ 
-          popularCities: data.popularCities, 
+        setStats({
+          popularCities: data.popularCities,
           revenueByCity: data.revenueByCity,
-          revenueTrend: data.revenueTrend || [] 
+          revenueTrend: data.revenueTrend || []
         });
       }
     } catch { console.error("Stats қатесі"); }
@@ -150,20 +150,20 @@ function AdminPage() {
     if (payments.length === 0) return showMsg('Экспорттайтын деректер жоқ', 'error');
     const headers = ['ID', 'Client', 'City', 'Guests', 'Amount', 'Tour Date', 'Card', 'Created At'];
     const rows = payments.map(p => [
-      p.id, 
-      p.name, 
-      p.city, 
-      p.guests_count || 1, 
+      p.id,
+      p.name,
+      p.city,
+      p.guests_count || 1,
       p.total_amount || 450000,
       p.tour_date ? new Date(p.tour_date).toLocaleDateString() : '---',
-      `****${p.number.slice(-4)}`, 
+      `****${p.number.slice(-4)}`,
       new Date(p.created_at).toLocaleString()
     ]);
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `payments_${new Date().toISOString().slice(0,10)}.csv`;
+    link.download = `payments_${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
   };
 
@@ -190,12 +190,10 @@ function AdminPage() {
   const fixMapUrl = (url = '') => {
     if (!url) return '';
     let processed = url.trim();
-    // Extract src from iframe if pasted whole tag
     if (processed.includes('<iframe')) {
       const match = processed.match(/src="([^"]+)"/);
       if (match) processed = match[1];
     }
-    // Auto-append &output=embed for standard Google Maps links
     if (processed.includes('google.com/maps') && !processed.includes('output=embed') && !processed.includes('/maps/embed')) {
       processed = processed.includes('?') ? `${processed}&output=embed` : `${processed}?output=embed`;
     }
@@ -230,17 +228,17 @@ function AdminPage() {
   const totalRevenue = stats.revenueByCity.reduce((acc, curr) => acc + curr.revenue, 0);
   const totalBookings = stats.popularCities.reduce((acc, curr) => acc + curr.bookings, 0);
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredUsers = users.filter(u =>
+    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
-  const filteredTours = tours.filter(t => 
-    t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+
+  const filteredTours = tours.filter(t =>
+    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
-  const filteredPayments = payments.filter(p => 
+
+  const filteredPayments = payments.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -250,17 +248,17 @@ function AdminPage() {
       {notification && (
         <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
-      
+
       {isSidebarOpen && (
         <div className="admin-sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
       )}
-      
+
       <aside className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="admin-logo">
-          <span style={{ fontSize: '1.8rem', marginRight: '-5px'}}>A</span>
+          <span style={{ fontSize: '1.8rem', marginRight: '-5px' }}>A</span>
           <span>ADMIN PANEL</span>
         </div>
-        
+
         <nav className="admin-nav">
           <button className={`admin-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}>
             📊 Dashboard
@@ -275,7 +273,7 @@ function AdminPage() {
             💳 Payments
           </button>
         </nav>
-        
+
         <div className="admin-nav-bottom">
           <button className="admin-nav-item" onClick={() => navigate('/')} style={{ color: '#ef4444' }}>
             🚪 Logout (Exit)
@@ -290,15 +288,15 @@ function AdminPage() {
               ☰
             </button>
             <span className="search-icon">🔍</span>
-            <input 
-               type="text" 
-               className="admin-search" 
-               placeholder={activeTab === 'dashboard' ? "Search..." : `Search in ${activeTab}...`}
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
+            <input
+              type="text"
+              className="admin-search"
+              placeholder={activeTab === 'dashboard' ? "Search..." : `Search in ${activeTab}...`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+
           <div className="admin-topbar-right">
             <span style={{ fontSize: '1.2rem', cursor: 'pointer', opacity: 0.7 }}>🔔</span>
             <div className="admin-profile">
@@ -307,15 +305,15 @@ function AdminPage() {
             </div>
           </div>
         </header>
-        
+
         <div className="admin-content">
           <div key={activeTab} className="animate-fade-in">
-          
+
             {activeTab === 'dashboard' && (
               <>
                 <h1 className="admin-page-title">Welcome back, {currentUser.name}</h1>
                 <p className="admin-page-subtitle">Here is what's happening today.</p>
-                
+
                 <div className="admin-metrics-grid">
                   <div className="admin-metric-card">
                     <div className="admin-metric-header">Total Users</div>
@@ -332,87 +330,87 @@ function AdminPage() {
                     <div className="admin-metric-value">{totalBookings}</div>
                     <div className="admin-metric-trend trend-down">↓ -2 this week</div>
                   </div>
-                    <div className="admin-metric-card">
-                      <div className="admin-metric-header">Total Tours</div>
-                      <div className="admin-metric-value">{tours.length}</div>
-                      <div className="admin-metric-trend trend-up">↑ +2 new</div>
-                    </div>
+                  <div className="admin-metric-card">
+                    <div className="admin-metric-header">Total Tours</div>
+                    <div className="admin-metric-value">{tours.length}</div>
+                    <div className="admin-metric-trend trend-up">↑ +2 new</div>
                   </div>
-                  
-                  <div className="admin-charts-grid">
-                    <div className="admin-chart-card">
-                       <h3 className="admin-chart-title">Revenue Trend (Last 14 Days)</h3>
-                       {stats.revenueTrend && stats.revenueTrend.length > 0 ? (
-                         <Line 
-                            data={{
-                              labels: stats.revenueTrend.map(r => r.label),
-                              datasets: [{
-                                label: 'Табыс (₸)',
-                                data: stats.revenueTrend.map(r => r.value),
-                                borderColor: '#0ea5e9',
-                                backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                                fill: true,
-                                tension: 0.4
-                              }]
-                            }}
-                            options={{ 
-                              responsive: true, 
-                              plugins: { legend: { display: false } },
-                              scales: {
-                                y: { ticks: { color: '#646a80' }, grid: { color: '#282a36' } },
-                                x: { ticks: { color: '#646a80' }, grid: { display: false } }
-                              }
-                            }}
-                          />
-                       ) : (
-                         <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                           <p style={{ color: '#646a80'}}>No trend data available</p>
-                         </div>
-                       )}
-                    </div>
-                    
-                    <div className="admin-chart-card">
-                       <h3 className="admin-chart-title">Popular Destinations</h3>
-                       {stats.popularCities.length > 0 ? (
-                         <Bar 
-                            data={{
-                              labels: stats.popularCities.map(c => c.city || 'Белгісіз'),
-                              datasets: [{
-                                label: 'Бронь саны',
-                                data: stats.popularCities.map(c => c.bookings),
-                                backgroundColor: 'rgba(14, 165, 233, 0.8)',
-                                borderRadius: 6,
-                              }]
-                            }}
-                          options={{ 
-                            responsive: true, 
-                            plugins: { legend: { display: false } },
-                            scales: {
-                              y: { ticks: { color: '#646a80' }, grid: { color: '#282a36' } },
-                              x: { ticks: { color: '#646a80' }, grid: { display: false } }
-                            }
-                          }}
-                        />
-                     ) : <p style={{ color: '#646a80'}}>No data available</p>}
-                  </div>
-                  
+                </div>
+
+                <div className="admin-charts-grid">
                   <div className="admin-chart-card">
-                     <h3 className="admin-chart-title">Recent Activity Log</h3>
-                     <div className="activity-list">
-                        {payments.slice(0, 5).map(p => (
-                          <div className="activity-item" key={`act-${p.id}`}>
-                            <div className="activity-icon">💳</div>
-                            <div className="activity-content">
-                              <div className="activity-title">{p.name} booked a tour</div>
-                              <div className="activity-meta">Dest: {p.city}</div>
-                            </div>
-                            <div className="activity-time">
-                              {new Date(p.created_at).toLocaleDateString()}
-                            </div>
+                    <h3 className="admin-chart-title">Revenue Trend (Last 14 Days)</h3>
+                    {stats.revenueTrend && stats.revenueTrend.length > 0 ? (
+                      <Line
+                        data={{
+                          labels: stats.revenueTrend.map(r => r.label),
+                          datasets: [{
+                            label: 'Табыс (₸)',
+                            data: stats.revenueTrend.map(r => r.value),
+                            borderColor: '#0ea5e9',
+                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          plugins: { legend: { display: false } },
+                          scales: {
+                            y: { ticks: { color: '#646a80' }, grid: { color: '#282a36' } },
+                            x: { ticks: { color: '#646a80' }, grid: { display: false } }
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <p style={{ color: '#646a80' }}>No trend data available</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="admin-chart-card">
+                    <h3 className="admin-chart-title">Popular Destinations</h3>
+                    {stats.popularCities.length > 0 ? (
+                      <Bar
+                        data={{
+                          labels: stats.popularCities.map(c => c.city || 'Белгісіз'),
+                          datasets: [{
+                            label: 'Бронь саны',
+                            data: stats.popularCities.map(c => c.bookings),
+                            backgroundColor: 'rgba(14, 165, 233, 0.8)',
+                            borderRadius: 6,
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          plugins: { legend: { display: false } },
+                          scales: {
+                            y: { ticks: { color: '#646a80' }, grid: { color: '#282a36' } },
+                            x: { ticks: { color: '#646a80' }, grid: { display: false } }
+                          }
+                        }}
+                      />
+                    ) : <p style={{ color: '#646a80' }}>No data available</p>}
+                  </div>
+
+                  <div className="admin-chart-card">
+                    <h3 className="admin-chart-title">Recent Activity Log</h3>
+                    <div className="activity-list">
+                      {payments.slice(0, 5).map(p => (
+                        <div className="activity-item" key={`act-${p.id}`}>
+                          <div className="activity-icon">💳</div>
+                          <div className="activity-content">
+                            <div className="activity-title">{p.name} booked a tour</div>
+                            <div className="activity-meta">Dest: {p.city}</div>
                           </div>
-                        ))}
-                        {payments.length === 0 && <p style={{color: '#646a80'}}>No recent activity.</p>}
-                     </div>
+                          <div className="activity-time">
+                            {new Date(p.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                      {payments.length === 0 && <p style={{ color: '#646a80' }}>No recent activity.</p>}
+                    </div>
                   </div>
                 </div>
               </>
@@ -422,7 +420,7 @@ function AdminPage() {
               <>
                 <h1 className="admin-page-title">Users</h1>
                 <p className="admin-page-subtitle">Manage system users and access roles.</p>
-                
+
                 <div className="admin-table-wrapper">
                   <div className="admin-table-header">
                     <h3>All Users ({filteredUsers.length})</h3>
@@ -433,21 +431,21 @@ function AdminPage() {
                     </thead>
                     <tbody>
                       {filteredUsers.length === 0 ? (
-                        <tr><td colSpan="5" style={{textAlign: 'center'}}>No users found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="5" style={{ textAlign: 'center' }}>No users found matching "{searchQuery}"</td></tr>
                       ) : (
                         filteredUsers.map(u => (
                           <tr key={u.id}>
                             <td>
                               <div className="user-info">
                                 <div className="user-avatar">{getInitials(u.name)}</div>
-                                <span style={{color: '#fff', fontWeight: 500}}>{u.name}</span>
+                                <span style={{ color: '#fff', fontWeight: 500 }}>{u.name}</span>
                               </div>
                             </td>
                             <td>{u.email}</td>
                             <td>
-                              <select 
+                              <select
                                 className="admin-select"
-                                value={u.role || 'user'} 
+                                value={u.role || 'user'}
                                 onChange={(e) => handleRoleChange(u.id, e.target.value)}
                               >
                                 <option value="user">User</option>
@@ -478,11 +476,11 @@ function AdminPage() {
               <>
                 <h1 className="admin-page-title">Tours</h1>
                 <p className="admin-page-subtitle">Manage travel destinations and pricing.</p>
-                
+
                 <div className="admin-table-wrapper" style={{ marginBottom: '2rem' }}>
                   <div className="admin-table-header">
-                     <h3>All Tours ({filteredTours.length})</h3>
-                     <button className="admin-btn" onClick={openCreateModal}>+ Add New Tour</button>
+                    <h3>All Tours ({filteredTours.length})</h3>
+                    <button className="admin-btn" onClick={openCreateModal}>+ Add New Tour</button>
                   </div>
                   <table className="admin-table">
                     <thead>
@@ -490,7 +488,7 @@ function AdminPage() {
                     </thead>
                     <tbody>
                       {filteredTours.length === 0 ? (
-                        <tr><td colSpan="6" style={{textAlign: 'center'}}>No tours found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="6" style={{ textAlign: 'center' }}>No tours found matching "{searchQuery}"</td></tr>
                       ) : (
                         filteredTours.map(t => (
                           <tr key={t.id}>
@@ -520,7 +518,7 @@ function AdminPage() {
               <>
                 <h1 className="admin-page-title">Payments (Orders)</h1>
                 <p className="admin-page-subtitle">Recent payment transactions.</p>
-                
+
                 <div className="admin-table-wrapper">
                   <div className="admin-table-header">
                     <h3>Recent Bookings ({filteredPayments.length})</h3>
@@ -532,7 +530,7 @@ function AdminPage() {
                     </thead>
                     <tbody>
                       {filteredPayments.length === 0 ? (
-                        <tr><td colSpan="7" style={{textAlign: 'center'}}>No payments found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="7" style={{ textAlign: 'center' }}>No payments found matching "{searchQuery}"</td></tr>
                       ) : (
                         filteredPayments.map(p => (
                           <tr key={p.id}>
@@ -561,33 +559,33 @@ function AdminPage() {
       {isModalOpen && (
         <div className="admin-modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
-             <div className="admin-modal-header">
-               <h2 className="admin-modal-title">
-                 {editingTour ? `Edit Tour #${editingTour.id}` : 'Create New Tour'}
-               </h2>
-               <button className="admin-modal-close" onClick={() => setIsModalOpen(false)}>×</button>
-             </div>
+            <div className="admin-modal-header">
+              <h2 className="admin-modal-title">
+                {editingTour ? `Edit Tour #${editingTour.id}` : 'Create New Tour'}
+              </h2>
+              <button className="admin-modal-close" onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
 
-             <form onSubmit={handleTourSubmit}>
-               <div className="admin-form-inner">
-                 <input required type="text" placeholder="Title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="admin-form-input" />
-                 <input required type="number" placeholder="Price (KZT)" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="admin-form-input" />
-                 <input type="text" placeholder="City" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} className="admin-form-input" />
-                 <input type="text" placeholder="Image URL" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="admin-form-input" />
-                 <input type="text" placeholder="Google Maps URL (route)" value={formData.map_url} onChange={e => setFormData({...formData, map_url: e.target.value})} className="admin-form-input" />
-                 <p style={{ gridColumn: '1 / -1', fontSize: '0.75rem', color: '#646a80', marginTop: '-10px', marginBottom: '4px' }}>
-                   💡 Кеңес: Карта дұрыс көрінуі үшін 'Embed map' (Бөлісу → Картаны ендіру) кодын пайдаланған жөн.
-                 </p>
-               </div>
-               <div className="admin-form-inner full">
-                 <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="admin-form-input" rows="3" style={{ height: 'auto', fontFamily: 'inherit' }}></textarea>
-                 <textarea placeholder="Route text (e.g. A → B → C)" value={formData.route_text} onChange={e => setFormData({...formData, route_text: e.target.value})} className="admin-form-input" rows="2" style={{ height: 'auto', fontFamily: 'inherit', marginTop: '12px' }}></textarea>
-               </div>
-               <div className="admin-form-actions">
-                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                 <button type="submit" className="admin-btn">Save Tour</button>
-               </div>
-             </form>
+            <form onSubmit={handleTourSubmit}>
+              <div className="admin-form-inner">
+                <input required type="text" placeholder="Title" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="admin-form-input" />
+                <input required type="number" placeholder="Price (KZT)" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="admin-form-input" />
+                <input type="text" placeholder="City" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="admin-form-input" />
+                <input type="text" placeholder="Image URL" value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="admin-form-input" />
+                <input type="text" placeholder="Google Maps URL (route)" value={formData.map_url} onChange={e => setFormData({ ...formData, map_url: e.target.value })} className="admin-form-input" />
+                <p style={{ gridColumn: '1 / -1', fontSize: '0.75rem', color: '#646a80', marginTop: '-10px', marginBottom: '4px' }}>
+                  💡 Кеңес: Карта дұрыс көрінуі үшін 'Embed map' (Бөлісу → Картаны ендіру) кодын пайдаланған жөн.
+                </p>
+              </div>
+              <div className="admin-form-inner full">
+                <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="admin-form-input" rows="3" style={{ height: 'auto', fontFamily: 'inherit' }}></textarea>
+                <textarea placeholder="Route text (e.g. A → B → C)" value={formData.route_text} onChange={e => setFormData({ ...formData, route_text: e.target.value })} className="admin-form-input" rows="2" style={{ height: 'auto', fontFamily: 'inherit', marginTop: '12px' }}></textarea>
+              </div>
+              <div className="admin-form-actions">
+                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="submit" className="admin-btn">Save Tour</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

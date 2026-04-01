@@ -6,7 +6,6 @@ const fs = require('fs');
 const pool = require('../js/db');
 const jwt = require('jsonwebtoken');
 
-// Жүктелетін суреттерді сақтайтын папка (uploads/)
 const uploadDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -17,7 +16,6 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // avatar_userId_timestamp.jpg (мысалы)
     const ext = path.extname(file.originalname);
     cb(null, `avatar_${Date.now()}${ext}`);
   }
@@ -25,7 +23,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB max
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       if (file.originalname && file.originalname.length > 80) {
@@ -38,7 +36,6 @@ const upload = multer({
   }
 });
 
-// Middleware for token (Auth)
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ success: false, message: 'Расталмады' });
@@ -60,10 +57,8 @@ router.post('/avatar', authenticate, upload.single('avatar'), async (req, res) =
     }
 
     const userId = req.user.id;
-    // URL жолын құру: мысалы /uploads/avatar_1234.jpg
     const avatarUrl = `/uploads/${req.file.filename}`;
 
-    // Дерекқордағы пайдаланушыны жаңарту
     await pool.query('UPDATE users SET avatar_url = $1 WHERE id = $2', [avatarUrl, userId]);
 
     res.json({ success: true, avatar_url: avatarUrl, message: 'Сурет сәтті сақталды!' });

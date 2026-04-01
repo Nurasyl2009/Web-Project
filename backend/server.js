@@ -15,7 +15,7 @@ const cityRoutes = require('./routes/cityRoutes');
 const app = express();
 
 app.use(cors({
-  origin: '*', // Уақытша бәріне рұқсат беру
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -30,7 +30,6 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/cities', cityRoutes);
 
-// Суреттер орналасқан (uploads) папкасын статикалық түрде көруге ашу
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const clientBuild = path.join(__dirname, '../frontend', 'dist');

@@ -22,16 +22,14 @@ const CITIES = ['Париж', 'Рим', 'Берлин', 'Мадрид'];
 
 function BuyTourPage() {
   const navigate = useNavigate();
-  // Payment Method: 'base' | 'kaspi' | 'halyk'
   const [method, setMethod] = useState('kaspi');
-  
-  // Form State
+
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
   const [city, setCity] = useState(CITIES[0]);
   const [tourDate, setTourDate] = useState('');
   const [cvv, setCvv] = useState('');
-  
+
   // UI State
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -39,13 +37,12 @@ function BuyTourPage() {
   const [guestsCount, setGuestsCount] = useState(1);
   const [tours, setTours] = useState([]);
 
-  const [receipt, setReceipt] = useState(null); // { name, city, createdAt }
+  const [receipt, setReceipt] = useState(null);
 
-  // Autofill user name and fetch tours
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.name) setName(user.name);
-    
+
     const fetchTours = async () => {
       try {
         const res = await fetch('/api/tours');
@@ -56,7 +53,6 @@ function BuyTourPage() {
     fetchTours();
   }, []);
 
-  // Check Availability dynamically
   useEffect(() => {
     if (!city || !tourDate) {
       setAvailableSpots(null);
@@ -138,13 +134,13 @@ function BuyTourPage() {
       setNotification({ message: err, type: 'error' });
       return;
     }
-    submitPayment({ 
-      name, 
-      number: number.replace(/\D/g, ''), 
-      city, 
-      cvv, 
+    submitPayment({
+      name,
+      number: number.replace(/\D/g, ''),
+      city,
+      cvv,
       tourDate,
-      guestsCount 
+      guestsCount
     });
   };
 
@@ -153,7 +149,6 @@ function BuyTourPage() {
   const previewNumber = formattedNumber || '0000 0000 0000 0000';
   const displayName = name || 'Аты-жөніңіз';
 
-  // --- RECEIPT RENDER ---
   if (receipt) {
     return (
       <div className="section container" style={{ display: 'flex', justifyContent: 'center', paddingTop: '4rem' }}>
@@ -196,9 +191,9 @@ function BuyTourPage() {
           </div>
           <div className="receipt-footer">
             <button className="btn-primary" onClick={() => navigate('/profile')}>Жеке кабинетке өту</button>
-            <button className="btn-outline" style={{marginTop: '1rem', width: '100%'}} onClick={() => {
-               setReceipt(null); 
-               setAvailableSpots(null);
+            <button className="btn-outline" style={{ marginTop: '1rem', width: '100%' }} onClick={() => {
+              setReceipt(null);
+              setAvailableSpots(null);
             }}>
               Жаңа тур алу
             </button>
@@ -208,8 +203,6 @@ function BuyTourPage() {
     );
   }
 
-  // --- FORM VARIABLES ---
-  
   let cardBgClass = 'card-preview-base';
   let cardLogo = 'VISA / MC';
   if (method === 'kaspi') {
@@ -225,19 +218,17 @@ function BuyTourPage() {
       {notification && (
         <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
-      
+
 
 
       <div className="buy-page__inner">
         <div>
-          {/* METHOD SELECTOR */}
           <div className="method-selector">
             <button type="button" className={`method-btn ${method === 'kaspi' ? 'active kaspi-btn' : ''}`} onClick={() => setMethod('kaspi')}>Kaspi</button>
             <button type="button" className={`method-btn ${method === 'halyk' ? 'active halyk-btn' : ''}`} onClick={() => setMethod('halyk')}>Halyk Bank</button>
             <button type="button" className={`method-btn ${method === 'base' ? 'active' : ''}`} onClick={() => setMethod('base')}>Басқа карта</button>
           </div>
 
-          {/* CARD PREVIEW */}
           <div className={`payment-card-preview ${cardBgClass}`}>
             <div className="card-preview__logo">{cardLogo}</div>
             <div className="card-preview__number">{previewNumber}</div>
@@ -252,7 +243,7 @@ function BuyTourPage() {
               </div>
             </div>
           </div>
-          
+
           <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', textAlign: 'center' }}>
             🔒 Барлық төлемдер қауіпсіз және банк шифрлауымен қорғалған.
           </p>
@@ -260,7 +251,7 @@ function BuyTourPage() {
 
         <div className="pay-form">
           <h2>Төлем мәліметтері</h2>
-          
+
 
 
           <form onSubmit={handleSubmit} noValidate>
@@ -301,7 +292,7 @@ function BuyTourPage() {
 
               <div className="form-group">
                 <label htmlFor="tour-date">Саяхат күні</label>
-                <input 
+                <input
                   id="tour-date"
                   type="date"
                   min={minDate}
@@ -315,16 +306,16 @@ function BuyTourPage() {
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="guests-count">Адам саны</label>
-                <select 
-                  id="guests-count" 
-                  className="form-input" 
-                  value={guestsCount} 
+                <select
+                  id="guests-count"
+                  className="form-input"
+                  value={guestsCount}
                   onChange={(e) => setGuestsCount(parseInt(e.target.value))}
                 >
-                  {[1,2,3,4,5,6,10].map(n => <option key={n} value={n}>{n} адам</option>)}
+                  {[1, 2, 3, 4, 5, 6, 10].map(n => <option key={n} value={n}>{n} адам</option>)}
                 </select>
               </div>
-              
+
               <div className="form-group">
                 <label htmlFor="cvv">CVV</label>
                 <input
@@ -340,10 +331,10 @@ function BuyTourPage() {
               </div>
             </div>
 
-            <div className="total-price-box" style={{ 
-              background: 'rgba(14, 165, 233, 0.05)', 
-              padding: '1.25rem', 
-              borderRadius: '12px', 
+            <div className="total-price-box" style={{
+              background: 'rgba(14, 165, 233, 0.05)',
+              padding: '1.25rem',
+              borderRadius: '12px',
               marginBottom: '1.5rem',
               border: '1px dashed #0ea5e9'
             }}>
@@ -360,24 +351,23 @@ function BuyTourPage() {
               </div>
             </div>
 
-            {/* Бос орындар индикаторы */}
             {availableSpots !== null && (
-              <div style={{ 
-                marginBottom: '1.5rem', 
-                padding: '0.8rem', 
-                borderRadius: '8px', 
-                textAlign: 'center', 
-                fontWeight: '600', 
+              <div style={{
+                marginBottom: '1.5rem',
+                padding: '0.8rem',
+                borderRadius: '8px',
+                textAlign: 'center',
+                fontWeight: '600',
                 backgroundColor: availableSpots > 0 ? '#dcfce7' : '#fee2e2',
-                color: availableSpots > 0 ? '#166534' : '#991b1b' 
+                color: availableSpots > 0 ? '#166534' : '#991b1b'
               }}>
                 {availableSpots > 0 ? `✅ Осы жақсы күнге ${availableSpots} бос орын қалды!` : `❌ Өкінішке орай, бұл күнге орын таусылды.`}
               </div>
             )}
 
-            <button 
-              type="submit" 
-              className={`submit-btn ${method === 'kaspi' ? 'btn-kaspi' : method === 'halyk' ? 'btn-halyk' : ''}`} 
+            <button
+              type="submit"
+              className={`submit-btn ${method === 'kaspi' ? 'btn-kaspi' : method === 'halyk' ? 'btn-halyk' : ''}`}
               disabled={loading || availableSpots === 0}
             >
               {loading ? 'Өңделуде...' : '💳 Сатып алу'}

@@ -4,7 +4,6 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// 1. Барлық таңдаулы турларды алу (Get all user favorites)
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const result = await pool.query(
@@ -22,11 +21,9 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// 2. Таңдаулыларға қосу (Add to favorites)
 router.post('/:tourId', authMiddleware, async (req, res) => {
   const tourId = req.params.tourId;
   try {
-    // Тура бар-жоғын тексеру (маңызды емес, бірақ foreign key болған соң кіріктіреміз)
     await pool.query(
       'INSERT INTO favorites (user_id, tour_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [req.user.id, tourId]
@@ -41,7 +38,6 @@ router.post('/:tourId', authMiddleware, async (req, res) => {
   }
 });
 
-// 3. Таңдаулылардан өшіру (Remove from favorites)
 router.delete('/:tourId', authMiddleware, async (req, res) => {
   const tourId = req.params.tourId;
   try {
