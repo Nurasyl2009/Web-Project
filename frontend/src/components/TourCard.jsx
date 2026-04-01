@@ -7,7 +7,18 @@ import { Link } from 'react-router-dom';
  * @param {boolean} isFavoriteInit - Initial favorite state from parent
  * @param {function} onToggleFavorite - Optional callback when toggled
  */
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
+
+/**
+ * Reusable tour card component.
+ * @param {object} tour - Tour data object
+ * @param {boolean} isFavoriteInit - Initial favorite state from parent
+ * @param {function} onToggleFavorite - Optional callback when toggled
+ */
 function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
+  const { language } = useAppContext();
+  const t = translations[language];
   const { id, title, description, price, image, badge } = tour;
   const [isFavorite, setIsFavorite] = useState(isFavoriteInit);
   const [loading, setLoading] = useState(false);
@@ -21,7 +32,7 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
     e.preventDefault();
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Таңдаулыларға қосу үшін жүйеге кіріңіз!');
+      alert(t.tourCard.loginRequired);
       return;
     }
 
@@ -37,10 +48,10 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
         setIsFavorite(!isFavorite);
         if (onToggleFavorite) onToggleFavorite(id, !isFavorite);
       } else {
-        alert(data.message || 'Қате кетті');
+        alert(data.message || t.common.error);
       }
     } catch {
-      alert('Серверлік қате');
+      alert(t.common.errorServer);
     } finally {
       setLoading(false);
     }
@@ -51,7 +62,7 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
       <button 
         onClick={handleFavoriteClick}
         disabled={loading}
-        title={isFavorite ? 'Таңдаулылардан өшіру' : 'Таңдаулыларға қосу'}
+        title={isFavorite ? t.tourCard.favRemove : t.tourCard.favAdd}
         style={{
           position: 'absolute',
           top: '12px',
@@ -88,7 +99,7 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
         <div className="tour-card__footer">
           <span className="tour-card__price">{price}</span>
           <Link to="/buy" state={{ defaultCity: badge || title }} className="tour-card__btn">
-            Сатып алу
+            {t.tourCard.buy}
           </Link>
         </div>
       </div>

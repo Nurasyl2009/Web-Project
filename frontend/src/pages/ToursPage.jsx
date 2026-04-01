@@ -1,43 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import TourCard from '../components/TourCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-
-const STATIC_TOURS = [
-  {
-    id: 1,
-    title: 'Парижге саяхат',
-    description: 'Махаббат қаласының сиқырын сезініңіз. Эйфель мұнарасы мен Лувр сізді күтуде.',
-    price: '450,000 ₸',
-    badge: 'Париж',
-    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=500&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    title: 'Рим демалысы',
-    description: 'Ежелгі тарих пен дәмді итальян асханасы. Колизейге ұмытылмас саяхат.',
-    price: '380,000 ₸',
-    badge: 'Рим',
-    image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=500&auto=format&fit=crop',
-  },
-  {
-    id: 3,
-    title: 'Берлин рухы',
-    description: 'Заманауи мәдениет пен еркіндік қаласы. Креативті Берлинді ашыңыз.',
-    price: '320,000 ₸',
-    badge: 'Берлин',
-    image: 'https://images.unsplash.com/photo-1560969184-10fe8719e047?q=80&w=500&auto=format&fit=crop',
-  },
-  {
-    id: 4,
-    title: 'Мадрид саяхаты',
-    description: 'Испанияның астанасы. Мәдениет, тарих және түнгі өмірдің орталығы.',
-    price: '620,000 ₸',
-    badge: 'Мадрид',
-    image: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?q=80&w=500&auto=format&fit=crop',
-  },
-];
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 
 function ToursPage() {
+  const { language } = useAppContext();
+  const t = translations[language];
   const [tours, setTours] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,12 +21,12 @@ function ToursPage() {
     const fetchTours = async () => {
       try {
         const res = await fetch('/api/tours');
-        if (!res.ok) throw new Error('API жауап бермеді');
+        if (!res.ok) throw new Error(t.common.error);
         const data = await res.json();
-        setTours(data.length ? data : STATIC_TOURS);
+        setTours(data.length ? data : t.tours.staticTours);
       } catch (err) {
         console.warn('API қолжетімді емес, статикалық деректер қолданылады:', err.message);
-        setTours(STATIC_TOURS);
+        setTours(t.tours.staticTours);
         setError(null);
       } finally {
         setLoading(false);
@@ -82,7 +51,7 @@ function ToursPage() {
 
     fetchTours();
     fetchFavorites();
-  }, []);
+  }, [language, t.common.error, t.tours.staticTours]);
 
   const parsePrice = (priceVal) => {
     if (typeof priceVal === 'number') return priceVal;
@@ -121,8 +90,8 @@ function ToursPage() {
   return (
     <>
       <div className="about-hero" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)' }}>
-        <h1>🌍 Барлық турлар</h1>
-        <p>Өзіңізге арналған тамаша саяхатты табыңыз!</p>
+        <h1>{t.tours.title}</h1>
+        <p>{t.tours.subtitle}</p>
       </div>
 
       <section className="section" style={{ paddingTop: '2rem' }}>
@@ -130,10 +99,10 @@ function ToursPage() {
 
           <div className="filter-bar">
             <div className="filter-group">
-              <label>🔍 Іздеу:</label>
+              <label>🔍 {t.tours.searchPlaceholder.split('...')[0]}:</label>
               <input
                 type="text"
-                placeholder="Тур немесе қала..."
+                placeholder={t.tours.searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="form-input"
@@ -141,13 +110,13 @@ function ToursPage() {
             </div>
 
             <div className="filter-group">
-              <label>📍 Бағыт (Қала):</label>
+              <label>{t.tours.destinationLabel}</label>
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
                 className="form-input"
               >
-                <option value="">Барлығы</option>
+                <option value="">{t.tours.allCities}</option>
                 {uniqueCities.map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -155,7 +124,7 @@ function ToursPage() {
             </div>
 
             <div className="filter-group range-group">
-              <label>💰 Ең жоғарғы баға: <b>{maxPrice.toLocaleString('kk-KZ')} ₸</b></label>
+              <label>{t.tours.maxPriceLabel} <b>{maxPrice.toLocaleString(language === 'kk' ? 'kk-KZ' : 'ru-RU')} ₸</b></label>
               <input
                 type="range"
                 min="50000"
@@ -186,12 +155,12 @@ function ToursPage() {
                 </div>
               ) : (
                 <div className="no-tours-found">
-                  <h3>😕 Өкінішке орай, мұндай тур табылмады.</h3>
-                  <p>Басқа параметрлерді байқап көріңіз немесе бағаны көтеріңіз.</p>
+                  <h3>{t.tours.noToursTitle}</h3>
+                  <p>{t.tours.noToursDesc}</p>
                   <button className="btn-primary" onClick={() => {
                     setSearchTerm(''); setSelectedCity(''); setMaxPrice(1500000);
                   }}>
-                    Сүзгіні тазалау
+                    {t.tours.clearFilters}
                   </button>
                 </div>
               )}

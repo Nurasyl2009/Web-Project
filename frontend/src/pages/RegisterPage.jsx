@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Notification from '../components/Notification';
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 
 function RegisterPage() {
+  const { language } = useAppContext();
+  const t = translations[language];
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -14,10 +18,10 @@ function RegisterPage() {
 
   const validate = () => {
     const { name, email, password, confirm } = formData;
-    if (!name.trim()) return 'Атыңызды енгізіңіз';
-    if (!email.trim() || !email.includes('@')) return 'Жарамды email енгізіңіз';
-    if (password.length < 6) return 'Құпия сөз кем дегенде 6 символ болуы керек';
-    if (password !== confirm) return 'Құпия сөздер сәйкес келмейді';
+    if (!name.trim()) return t.auth.nameLabel + ' ' + (language === 'kk' ? 'енгізіңіз' : 'введите');
+    if (!email.trim() || !email.includes('@')) return t.auth.emailPlaceholder + ' ' + (language === 'kk' ? 'дұрыс емес' : 'некорректен');
+    if (password.length < 6) return t.auth.passwordPlaceholder;
+    if (password !== confirm) return language === 'kk' ? 'Құпия сөздер сәйкес келмейді' : 'Пароли не совпадают';
     return null;
   };
 
@@ -44,13 +48,13 @@ function RegisterPage() {
       const data = await res.json();
 
       if (data.success) {
-        setNotification({ message: 'Тіркелу сәтті! Аккаунтыңызға кіріп жатырмыз...', type: 'success' });
+        setNotification({ message: language === 'kk' ? 'Тіркелу сәтті! Аккаунтыңызға кіріп жатырмыз...' : 'Регистрация успешна! Входим в аккаунт...', type: 'success' });
         setTimeout(() => navigate('/login'), 1500);
       } else {
-        setNotification({ message: data.message || 'Тіркелу мүмкін болмады', type: 'error' });
+        setNotification({ message: data.message || t.common.error, type: 'error' });
       }
     } catch {
-      setNotification({ message: 'Серверге қосылу мүмкін болмады', type: 'error' });
+      setNotification({ message: t.common.errorServer, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -67,18 +71,18 @@ function RegisterPage() {
       )}
 
       <div className="auth-box">
-        <h1>Тіркелу 🚀</h1>
-        <p className="subtitle">Жаңа аккаунт жасаңыз</p>
+        <h1>{t.auth.registerTitle}</h1>
+        <p className="subtitle">{t.auth.registerSub}</p>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label htmlFor="reg-name">Атыңыз</label>
+            <label htmlFor="reg-name">{t.auth.nameLabel}</label>
             <input
               id="reg-name"
               name="name"
               type="text"
               className="form-input"
-              placeholder="Аты-жөніңіз"
+              placeholder={t.auth.namePlaceholder}
               value={formData.name}
               onChange={handleChange}
               autoComplete="name"
@@ -86,13 +90,13 @@ function RegisterPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="reg-email">Email</label>
+            <label htmlFor="reg-email">{t.auth.emailLabel}</label>
             <input
               id="reg-email"
               name="email"
               type="email"
               className="form-input"
-              placeholder="you@example.com"
+              placeholder={t.auth.emailPlaceholder}
               value={formData.email}
               onChange={handleChange}
               autoComplete="email"
@@ -100,27 +104,24 @@ function RegisterPage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="reg-password">Құпия сөз</label>
+            <label htmlFor="reg-password">{t.auth.passwordLabel}</label>
             <input
               id="reg-password"
               name="password"
               type="password"
               className="form-input"
-              placeholder="Кем дегенде 6 символ"
-              value={formData.password}
-              onChange={handleChange}
-              autoComplete="new-password"
+              placeholder={t.auth.passwordPlaceholder}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="reg-confirm">Құпия сөзді растау</label>
+            <label htmlFor="reg-confirm">{t.auth.confirmPasswordLabel}</label>
             <input
               id="reg-confirm"
               name="confirm"
               type="password"
               className="form-input"
-              placeholder="Қайта жазыңыз"
+              placeholder={t.auth.confirmPlaceholder}
               value={formData.confirm}
               onChange={handleChange}
               autoComplete="new-password"
@@ -128,12 +129,12 @@ function RegisterPage() {
           </div>
 
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Тіркелуде...' : 'Тіркелу'}
+            {loading ? t.auth.registerBtn + '...' : t.auth.registerBtn}
           </button>
         </form>
 
         <p className="auth-footer">
-          Аккаунт бар ма? <Link to="/login">Кіру</Link>
+          {t.auth.haveAccount} <Link to="/login">{t.auth.loginBtn}</Link>
         </p>
       </div>
     </div>

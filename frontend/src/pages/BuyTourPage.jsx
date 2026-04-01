@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Notification from '../components/Notification';
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 
 function luhnCheck(num) {
   const digits = String(num).replace(/\D/g, '');
@@ -21,6 +23,8 @@ function luhnCheck(num) {
 const CITIES = ['Париж', 'Рим', 'Берлин', 'Мадрид'];
 
 function BuyTourPage() {
+  const { language } = useAppContext();
+  const t = translations[language];
   const navigate = useNavigate();
   const [method, setMethod] = useState('kaspi');
 
@@ -71,6 +75,7 @@ function BuyTourPage() {
   }, [city, tourDate]);
 
   const minDate = new Date().toISOString().split('T')[0];
+  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
 
   const clearForm = () => {
     setNumber('');
@@ -87,12 +92,12 @@ function BuyTourPage() {
   };
 
   const validate = () => {
-    if (!name.trim()) return 'Аты-жөніңізді енгізіңіз';
+    if (!name.trim()) return t.about.errorMessage;
     const digits = number.replace(/\D/g, '');
-    if (digits.length !== 16) return 'Карта нөмірі 16 санды болуы керек';
-    if (!luhnCheck(digits)) return 'Карта нөмірі жарамсыз';
-    if (!tourDate) return 'Саяхат күнін таңдаңыз';
-    if (cvv.length !== 3 || isNaN(Number(cvv))) return 'CVV 3 санды болуы керек';
+    if (digits.length !== 16) return language === 'kk' ? 'Карта нөмірі 16 санды болуы керек' : 'Номер карты должен содержать 16 цифр';
+    if (!luhnCheck(digits)) return language === 'kk' ? 'Карта нөмірі жарамсыз' : 'Недействительный номер карты';
+    if (!tourDate) return language === 'kk' ? 'Саяхат күнін таңдаңыз' : 'Выберите дату поездки';
+    if (cvv.length !== 3 || isNaN(Number(cvv))) return language === 'kk' ? 'CVV 3 санды болуы керек' : 'CVV должен содержать 3 цифры';
     return null;
   };
 
@@ -106,22 +111,22 @@ function BuyTourPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setNotification({ message: 'Төлем сәтті өтті!', type: 'success' });
+        setNotification({ message: language === 'kk' ? 'Төлем сәтті өтті!' : 'Оплата прошла успешно!', type: 'success' });
         setReceipt({
           name: payload.name,
           city: payload.city,
-          amount: (data.amount || 0).toLocaleString('kk-KZ') + ' ₸',
+          amount: (data.amount || 0).toLocaleString(locale) + ' ₸',
           guests: data.guests || payload.guestsCount,
-          date: new Date().toLocaleString(),
+          date: new Date().toLocaleString(locale),
           tourDate: payload.tourDate,
-          method: method === 'kaspi' ? 'Kaspi Gold' : (method === 'halyk' ? 'Halyk Bank' : 'Банк картасы')
+          method: method === 'kaspi' ? 'Kaspi Gold' : (method === 'halyk' ? 'Halyk Bank' : t.buy.methodOther)
         });
         clearForm();
       } else {
-        setNotification({ message: data.message || 'Төлем өтпеді', type: 'error' });
+        setNotification({ message: data.message || t.common.error, type: 'error' });
       }
     } catch {
-      setNotification({ message: 'Серверге қосылу қатесі', type: 'error' });
+      setNotification({ message: t.common.errorServer, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -144,10 +149,9 @@ function BuyTourPage() {
     });
   };
 
-
   const formattedNumber = number.replace(/(.{4})/g, '$1 ').trim();
   const previewNumber = formattedNumber || '0000 0000 0000 0000';
-  const displayName = name || 'Аты-жөніңіз';
+  const displayName = name || (language === 'kk' ? 'Аты-жөніңіз' : 'Ваше имя');
 
   if (receipt) {
     return (
@@ -155,47 +159,47 @@ function BuyTourPage() {
         <div className="receipt-card">
           <div className="receipt-header">
             <div className="receipt-icon">✓</div>
-            <h2>Төлем сәтті қабылданды</h2>
-            <p>Саяхатқа дайын болыңыз!</p>
+            <h2>{t.buy.receiptTitle}</h2>
+            <p>{t.buy.receiptSub}</p>
           </div>
           <div className="receipt-body">
             <div className="receipt-row">
-              <span>Төлеуші:</span>
+              <span>{t.buy.receiptPayer}</span>
               <strong>{receipt.name}</strong>
             </div>
             <div className="receipt-row">
-              <span>Бағыт (Қала):</span>
+              <span>{t.buy.receiptDest}</span>
               <strong>{receipt.city}</strong>
             </div>
             <div className="receipt-row">
-              <span>Саяхат күні:</span>
+              <span>{t.buy.receiptDate}</span>
               <strong>{receipt.tourDate}</strong>
             </div>
             <div className="receipt-row">
-              <span>Төлем әдісі:</span>
+              <span>{t.buy.receiptMethod}</span>
               <strong>{receipt.method}</strong>
             </div>
             <div className="receipt-row">
-              <span>Адам саны:</span>
-              <strong>{receipt.guests} адам</strong>
+              <span>{t.buy.receiptGuests}</span>
+              <strong>{receipt.guests} {language === 'kk' ? 'адам' : 'чел'}</strong>
             </div>
             <div className="receipt-row">
-              <span>Уақыты:</span>
+              <span>{t.buy.receiptTime}</span>
               <strong>{receipt.date}</strong>
             </div>
             <div className="receipt-divider"></div>
             <div className="receipt-row receipt-total">
-              <span>Жалпы сома:</span>
+              <span>{t.buy.receiptTotal}</span>
               <strong>{receipt.amount}</strong>
             </div>
           </div>
           <div className="receipt-footer">
-            <button className="btn-primary" onClick={() => navigate('/profile')}>Жеке кабинетке өту</button>
+            <button className="btn-primary" onClick={() => navigate('/profile')}>{t.buy.receiptProfileBtn}</button>
             <button className="btn-outline" style={{ marginTop: '1rem', width: '100%' }} onClick={() => {
               setReceipt(null);
               setAvailableSpots(null);
             }}>
-              Жаңа тур алу
+              {t.buy.receiptNewBtn}
             </button>
           </div>
         </div>
@@ -219,14 +223,12 @@ function BuyTourPage() {
         <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />
       )}
 
-
-
       <div className="buy-page__inner">
         <div>
           <div className="method-selector">
             <button type="button" className={`method-btn ${method === 'kaspi' ? 'active kaspi-btn' : ''}`} onClick={() => setMethod('kaspi')}>Kaspi</button>
             <button type="button" className={`method-btn ${method === 'halyk' ? 'active halyk-btn' : ''}`} onClick={() => setMethod('halyk')}>Halyk Bank</button>
-            <button type="button" className={`method-btn ${method === 'base' ? 'active' : ''}`} onClick={() => setMethod('base')}>Басқа карта</button>
+            <button type="button" className={`method-btn ${method === 'base' ? 'active' : ''}`} onClick={() => setMethod('base')}>{t.buy.methodOther}</button>
           </div>
 
           <div className={`payment-card-preview ${cardBgClass}`}>
@@ -234,29 +236,27 @@ function BuyTourPage() {
             <div className="card-preview__number">{previewNumber}</div>
             <div className="card-preview__info">
               <div>
-                <div className="card-preview__label">Төлеуші</div>
+                <div className="card-preview__label">{t.buy.cardPayer}</div>
                 <div className="card-preview__name">{displayName}</div>
               </div>
               <div>
-                <div className="card-preview__label">Қала</div>
+                <div className="card-preview__label">{t.buy.cardCity}</div>
                 <div className="card-preview__expiry">{city}</div>
               </div>
             </div>
           </div>
 
           <p style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-            🔒 Барлық төлемдер қауіпсіз және банк шифрлауымен қорғалған.
+            {t.buy.securityNote}
           </p>
         </div>
 
         <div className="pay-form">
-          <h2>Төлем мәліметтері</h2>
-
-
+          <h2>{t.buy.title}</h2>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="form-group">
-              <label htmlFor="card-name">Аты-жөні (Картадағы ат)</label>
+              <label htmlFor="card-name">{t.buy.labelName}</label>
               <input
                 id="card-name"
                 type="text"
@@ -269,7 +269,7 @@ function BuyTourPage() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="card-number">Карта нөмірі</label>
+              <label htmlFor="card-number">{t.buy.labelCardNum}</label>
               <input
                 id="card-number"
                 type="text"
@@ -284,14 +284,14 @@ function BuyTourPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="city-select">Тур қаласы</label>
+                <label htmlFor="city-select">{t.buy.labelCity}</label>
                 <select id="city-select" className="form-input" value={city} onChange={(e) => setCity(e.target.value)}>
                   {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="tour-date">Саяхат күні</label>
+                <label htmlFor="tour-date">{t.buy.labelDate}</label>
                 <input
                   id="tour-date"
                   type="date"
@@ -305,19 +305,19 @@ function BuyTourPage() {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="guests-count">Адам саны</label>
+                <label htmlFor="guests-count">{t.buy.labelGuests}</label>
                 <select
                   id="guests-count"
                   className="form-input"
                   value={guestsCount}
                   onChange={(e) => setGuestsCount(parseInt(e.target.value))}
                 >
-                  {[1, 2, 3, 4, 5, 6, 10].map(n => <option key={n} value={n}>{n} адам</option>)}
+                  {[1, 2, 3, 4, 5, 6, 10].map(n => <option key={n} value={n}>{n} {language === 'kk' ? 'адам' : 'чел'}</option>)}
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="cvv">CVV</label>
+                <label htmlFor="cvv">{t.buy.labelCvv}</label>
                 <input
                   id="cvv"
                   type="password"
@@ -339,13 +339,13 @@ function BuyTourPage() {
               border: '1px dashed #0ea5e9'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#646a80', fontSize: '0.9rem' }}>Жалпы сома:</span>
+                <span style={{ color: '#646a80', fontSize: '0.9rem' }}>{t.buy.totalPrice}</span>
                 <span style={{ fontSize: '1.3rem', fontWeight: '800', color: '#fff' }}>
                   {(() => {
                     const tour = tours.find(t => t.city === city);
                     const priceStr = tour ? tour.price.replace(/[^\d]/g, '') : '450000';
                     const price = parseInt(priceStr, 10);
-                    return (price * guestsCount).toLocaleString('kk-KZ') + ' ₸';
+                    return (price * guestsCount).toLocaleString(locale) + ' ₸';
                   })()}
                 </span>
               </div>
@@ -361,7 +361,9 @@ function BuyTourPage() {
                 backgroundColor: availableSpots > 0 ? '#dcfce7' : '#fee2e2',
                 color: availableSpots > 0 ? '#166534' : '#991b1b'
               }}>
-                {availableSpots > 0 ? `✅ Осы жақсы күнге ${availableSpots} бос орын қалды!` : `❌ Өкінішке орай, бұл күнге орын таусылды.`}
+                {availableSpots > 0 
+                  ? t.buy.spotsLeft.replace('{n}', availableSpots) 
+                  : t.buy.spotsNone}
               </div>
             )}
 
@@ -370,7 +372,7 @@ function BuyTourPage() {
               className={`submit-btn ${method === 'kaspi' ? 'btn-kaspi' : method === 'halyk' ? 'btn-halyk' : ''}`}
               disabled={loading || availableSpots === 0}
             >
-              {loading ? 'Өңделуде...' : '💳 Сатып алу'}
+              {loading ? t.buy.processingBtn : t.buy.buyBtn}
             </button>
           </form>
         </div>

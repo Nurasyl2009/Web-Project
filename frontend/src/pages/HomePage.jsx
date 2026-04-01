@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import TourCard from '../components/TourCard';
 import CityCard from '../components/CityCard';
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 
 const TOURS = [
   {
@@ -50,24 +52,27 @@ const CITIES = [
   },
 ];
 
-const STATS = [
-  { number: '4+', label: 'Еуропа қалалары' },
-  { number: '500+', label: 'Бақытты туристер' },
-  { number: '5 жыл', label: 'Тәжірибе' },
-  { number: '24/7', label: 'Қолдау қызметі' },
-];
-
 function HomePage() {
+  const { language } = useAppContext();
+  const t = translations[language];
+
+  const STATS = [
+    { number: '4+', label: t.stats.cities },
+    { number: '500+', label: t.stats.tourists },
+    { number: '5 жыл', label: t.stats.years },
+    { number: '24/7', label: t.stats.support },
+  ];
+
   return (
     <>
       <section className="hero" id="hero">
         <div className="hero__content">
-          <div className="hero__badge">✈️ Еуропаның ең жақсы турлары</div>
-          <h1>Армандаған<br />саяхатыңызды жасаңыз</h1>
-          <p>Париж, Рим, Берлин, Мадрид — ең танымал еуропалық қалаларға дайын маршруттар мен турлар</p>
+          <div className="hero__badge">{t.hero.badge}</div>
+          <h1>{t.hero.title}</h1>
+          <p>{t.hero.subtitle}</p>
           <div className="hero__cta">
-            <Link to="/tours" className="btn-hero btn-hero--white">Турларды көру</Link>
-            <Link to="/cities" className="btn-hero btn-hero--ghost">Маршруттар</Link>
+            <Link to="/tours" className="btn-hero btn-hero--white">{t.hero.ctaPrimary}</Link>
+            <Link to="/cities" className="btn-hero btn-hero--ghost">{t.hero.ctaSecondary}</Link>
           </div>
         </div>
       </section>
@@ -86,8 +91,8 @@ function HomePage() {
       <section className="section" id="popular-tours">
         <div className="container">
           <div className="section__header">
-            <h2 className="section__title">🌍 Танымал турлар</h2>
-            <p className="section__subtitle">Ең сұранысқа ие бағыттар</p>
+            <h2 className="section__title">{t.home.popularTours}</h2>
+            <p className="section__subtitle">{t.home.popularSub}</p>
           </div>
           <div className="tours-grid">
             {TOURS.map((tour) => (
@@ -95,7 +100,7 @@ function HomePage() {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <Link to="/tours" className="btn-primary">Барлық турларды көру →</Link>
+            <Link to="/tours" className="btn-primary">{t.home.viewAllTours} →</Link>
           </div>
         </div>
       </section>
@@ -103,8 +108,8 @@ function HomePage() {
       <section className="section" style={{ background: 'var(--surface-2)' }} id="city-routes">
         <div className="container">
           <div className="section__header">
-            <h2 className="section__title">🗺️ Қала маршруттары</h2>
-            <p className="section__subtitle">Дайын бағыттар мен картамен</p>
+            <h2 className="section__title">{t.home.cityRoutes}</h2>
+            <p className="section__subtitle">{t.home.citySub}</p>
           </div>
           <div className="cities-grid">
             {CITIES.map((city) => (
@@ -112,7 +117,7 @@ function HomePage() {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <Link to="/cities" className="btn-primary">Барлық қалаларды көру →</Link>
+            <Link to="/cities" className="btn-primary">{t.home.viewAllCities} →</Link>
           </div>
         </div>
       </section>

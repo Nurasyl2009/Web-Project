@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Notification from '../components/Notification';
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import './AdminPage.css';
 
 ChartJS.register(
-  CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement
+  CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, Filler
 );
 
 function getInitials(name = '') {
+  if (!name) return '?';
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
 function AdminPage() {
+  const { language } = useAppContext();
+  const t = translations[language];
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -63,7 +68,7 @@ function AdminPage() {
       const res = await fetch('/api/admin/users', { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setUsers(data.users);
-    } catch { showMsg('Сыртқы серверге қосылу қатесі', 'error'); }
+    } catch { showMsg(t.common.errorServer, 'error'); }
   };
 
   const fetchTours = async () => {
@@ -71,7 +76,7 @@ function AdminPage() {
       const res = await fetch('/api/admin/tours', { headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) setTours(data.tours);
-    } catch { showMsg('Сыртқы серверге қосылу қатесі', 'error'); }
+    } catch { showMsg(t.common.errorServer, 'error'); }
   };
 
   const fetchPayments = async () => {
@@ -82,7 +87,7 @@ function AdminPage() {
         const sorted = data.payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         setPayments(sorted);
       }
-    } catch { showMsg('Сыртқы серверге қосылу қатесі', 'error'); }
+    } catch { showMsg(t.common.errorServer, 'error'); }
   };
 
   const fetchStats = async () => {
@@ -91,8 +96,8 @@ function AdminPage() {
       const data = await res.json();
       if (data.success) {
         setStats({
-          popularCities: data.popularCities,
-          revenueByCity: data.revenueByCity,
+          popularCities: data.popularCities || [],
+          revenueByCity: data.revenueByCity || [],
           revenueTrend: data.revenueTrend || []
         });
       }
@@ -108,46 +113,52 @@ function AdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showMsg('Рөл жаңартылды', 'success');
+        showMsg(language === 'kk' ? 'Рөл жаңартылды' : 'Роль обновлена', 'success');
         fetchUsers();
       } else {
-        showMsg(data.message || 'Рөл жаңартылмады', 'error');
+        showMsg(data.message || (language === 'kk' ? 'Рөл жаңартылмады' : 'Роль не обновлена'), 'error');
       }
-    } catch { showMsg('Қате кетті', 'error'); }
+    } catch { showMsg(t.common.error, 'error'); }
   };
 
   const handleDeleteTour = async (id) => {
-    if (!window.confirm("Бұл турды өшіргіңіз келетініне сенімдісіз бе?")) return;
+    const confirmMsg = language === 'kk' 
+      ? "Бұл турды өшіргіңіз келетініне сенімдісіз бе?" 
+      : "Вы уверены, что хотите удалить этот тур?";
+    if (!window.confirm(confirmMsg)) return;
     try {
       const res = await fetch(`/api/admin/tours/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
-        showMsg('Тур сәтті өшірілді', 'success');
+        showMsg(language === 'kk' ? 'Тур сәтті өшірілді' : 'Тур успешно удален', 'success');
         fetchTours();
         fetchStats();
       } else {
-        showMsg(data.message || 'Қате', 'error');
+        showMsg(data.message || t.common.error, 'error');
       }
-    } catch { showMsg('Өшіру кезінде қате кетті', 'error'); }
+    } catch { showMsg(t.common.error, 'error'); }
   };
 
   const handleDeleteUser = async (id) => {
-    if (id === currentUser.id) return showMsg('Өзіңізді өшіре алмайсыз', 'error');
-    if (!window.confirm("Бұл пайдаланушыны өшіргіңіз келетініне сенімдісіз бе?")) return;
+    if (id === currentUser.id) return showMsg(language === 'kk' ? 'Өзіңізді өшіре алмайсыз' : 'Вы не можете удалить себя', 'error');
+    const confirmMsg = language === 'kk' 
+      ? "Бұл пайдаланушыны өшіргіңіз келетініне сенімдісіз бе?" 
+      : "Вы уверены, что хотите удалить этого пользователя?";
+    if (!window.confirm(confirmMsg)) return;
     try {
       const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
       const data = await res.json();
       if (data.success) {
-        showMsg('Пайдаланушы өшірілді', 'success');
+        showMsg(language === 'kk' ? 'Пайдаланушы өшірілді' : 'Пользователь удален', 'success');
         fetchUsers();
       } else {
-        showMsg(data.message || 'Қате', 'error');
+        showMsg(data.message || t.common.error, 'error');
       }
-    } catch { showMsg('Қате кетті', 'error'); }
+    } catch { showMsg(t.common.error, 'error'); }
   };
 
   const handleExportCSV = () => {
-    if (payments.length === 0) return showMsg('Экспорттайтын деректер жоқ', 'error');
+    if (payments.length === 0) return showMsg(language === 'kk' ? 'Экспорттайтын деректер жоқ' : 'Нет данных для экспорта', 'error');
     const headers = ['ID', 'Client', 'City', 'Guests', 'Amount', 'Tour Date', 'Card', 'Created At'];
     const rows = payments.map(p => [
       p.id,
@@ -214,34 +225,45 @@ function AdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showMsg(editingTour ? 'Тур жаңартылды!' : 'Жаңа тур қосылды!', 'success');
+        const msg = editingTour 
+          ? (language === 'kk' ? 'Тур жаңартылды!' : 'Тур обновлен!') 
+          : (language === 'kk' ? 'Жаңа тур қосылды!' : 'Новый тур добавлен!');
+        showMsg(msg, 'success');
         setIsModalOpen(false);
         fetchTours();
         fetchStats();
       } else {
-        showMsg(data.message || 'Қате кетті', 'error');
+        showMsg(data.message || t.common.error, 'error');
       }
-    } catch { showMsg('Қате кетті', 'error'); }
+    } catch { showMsg(t.common.error, 'error'); }
   };
 
-  const totalUsers = users.length;
-  const totalRevenue = stats.revenueByCity.reduce((acc, curr) => acc + curr.revenue, 0);
-  const totalBookings = stats.popularCities.reduce((acc, curr) => acc + curr.bookings, 0);
+  const totalUsers = users?.length || 0;
+  const totalRevenue = (stats.revenueByCity || []).reduce((acc, curr) => acc + (curr.revenue || 0), 0);
+  const totalBookings = (stats.popularCities || []).reduce((acc, curr) => acc + (curr.bookings || 0), 0);
 
-  const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = (users || []).filter(u =>
+    (u.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredTours = tours.filter(t =>
-    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.city.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTours = (tours || []).filter(t =>
+    (t.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (t.city || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredPayments = payments.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.city.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPayments = (payments || []).filter(p =>
+    (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.city || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
+
+  if (!currentUser.role || currentUser.role !== 'admin') {
+    return <div style={{ background: '#0f1015', height: '100vh' }}></div>;
+  }
+
+  if (!t) return null;
 
   return (
     <div className="admin-layout-wrapper">
@@ -261,22 +283,22 @@ function AdminPage() {
 
         <nav className="admin-nav">
           <button className={`admin-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}>
-            📊 Dashboard
+            {t.admin.sidebar.dashboard}
           </button>
           <button className={`admin-nav-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => { setActiveTab('users'); setIsSidebarOpen(false); }}>
-            👥 Users
+            {t.admin.sidebar.users}
           </button>
           <button className={`admin-nav-item ${activeTab === 'tours' ? 'active' : ''}`} onClick={() => { setActiveTab('tours'); setIsSidebarOpen(false); }}>
-            🌍 Tours
+            {t.admin.sidebar.tours}
           </button>
           <button className={`admin-nav-item ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => { setActiveTab('payments'); setIsSidebarOpen(false); }}>
-            💳 Payments
+            {t.admin.sidebar.payments}
           </button>
         </nav>
 
         <div className="admin-nav-bottom">
           <button className="admin-nav-item" onClick={() => navigate('/')} style={{ color: '#ef4444' }}>
-            🚪 Logout (Exit)
+            {t.admin.sidebar.logout}
           </button>
         </div>
       </aside>
@@ -291,7 +313,7 @@ function AdminPage() {
             <input
               type="text"
               className="admin-search"
-              placeholder={activeTab === 'dashboard' ? "Search..." : `Search in ${activeTab}...`}
+              placeholder={activeTab === 'dashboard' ? (language === 'kk' ? "Іздеу..." : "Поиск...") : `${language === 'kk' ? 'Іздеу' : 'Поиск'} : ${activeTab}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -311,42 +333,42 @@ function AdminPage() {
 
             {activeTab === 'dashboard' && (
               <>
-                <h1 className="admin-page-title">Welcome back, {currentUser.name}</h1>
-                <p className="admin-page-subtitle">Here is what's happening today.</p>
+                <h1 className="admin-page-title">{t.admin.dashboard.title} {currentUser.name}</h1>
+                <p className="admin-page-subtitle">{t.admin.dashboard.subtitle}</p>
 
                 <div className="admin-metrics-grid">
                   <div className="admin-metric-card">
-                    <div className="admin-metric-header">Total Users</div>
+                    <div className="admin-metric-header">{t.admin.dashboard.metrics.totalUsers}</div>
                     <div className="admin-metric-value">{totalUsers}</div>
-                    <div className="admin-metric-trend trend-up">↑ +12% this month</div>
+                    <div className="admin-metric-trend trend-up">↑ +12% {language === 'kk' ? 'осы айда' : 'в этом месяце'}</div>
                   </div>
                   <div className="admin-metric-card">
-                    <div className="admin-metric-header">Revenue</div>
-                    <div className="admin-metric-value">{totalRevenue.toLocaleString('kk-KZ')} ₸</div>
-                    <div className="admin-metric-trend trend-up">↑ +5% this month</div>
+                    <div className="admin-metric-header">{t.admin.dashboard.metrics.revenue}</div>
+                    <div className="admin-metric-value">{totalRevenue.toLocaleString(locale)} ₸</div>
+                    <div className="admin-metric-trend trend-up">↑ +5% {language === 'kk' ? 'осы айда' : 'в этом месяце'}</div>
                   </div>
                   <div className="admin-metric-card">
-                    <div className="admin-metric-header">Active Bookings</div>
+                    <div className="admin-metric-header">{t.admin.dashboard.metrics.activeBookings}</div>
                     <div className="admin-metric-value">{totalBookings}</div>
-                    <div className="admin-metric-trend trend-down">↓ -2 this week</div>
+                    <div className="admin-metric-trend trend-down">↓ -2 {language === 'kk' ? 'осы аптада' : 'на этой неделе'}</div>
                   </div>
                   <div className="admin-metric-card">
-                    <div className="admin-metric-header">Total Tours</div>
+                    <div className="admin-metric-header">{t.admin.dashboard.metrics.totalTours}</div>
                     <div className="admin-metric-value">{tours.length}</div>
-                    <div className="admin-metric-trend trend-up">↑ +2 new</div>
+                    <div className="admin-metric-trend trend-up">↑ +2 {language === 'kk' ? 'жаңа' : 'новых'}</div>
                   </div>
                 </div>
 
                 <div className="admin-charts-grid">
                   <div className="admin-chart-card">
-                    <h3 className="admin-chart-title">Revenue Trend (Last 14 Days)</h3>
-                    {stats.revenueTrend && stats.revenueTrend.length > 0 ? (
+                    <h3 className="admin-chart-title">{t.admin.dashboard.charts.revenueTrend}</h3>
+                    {(stats.revenueTrend || []).length > 0 ? (
                       <Line
                         data={{
-                          labels: stats.revenueTrend.map(r => r.label),
+                          labels: (stats.revenueTrend || []).map(r => r.label),
                           datasets: [{
-                            label: 'Табыс (₸)',
-                            data: stats.revenueTrend.map(r => r.value),
+                            label: t.admin.dashboard.metrics.revenue + ' (₸)',
+                            data: (stats.revenueTrend || []).map(r => r.value),
                             borderColor: '#0ea5e9',
                             backgroundColor: 'rgba(14, 165, 233, 0.1)',
                             fill: true,
@@ -364,20 +386,20 @@ function AdminPage() {
                       />
                     ) : (
                       <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <p style={{ color: '#646a80' }}>No trend data available</p>
+                        <p style={{ color: '#646a80' }}>{language === 'kk' ? 'Деректер жоқ' : 'Нет данных'}</p>
                       </div>
                     )}
                   </div>
 
                   <div className="admin-chart-card">
-                    <h3 className="admin-chart-title">Popular Destinations</h3>
-                    {stats.popularCities.length > 0 ? (
+                    <h3 className="admin-chart-title">{t.admin.dashboard.charts.popularDestinations}</h3>
+                    {(stats.popularCities || []).length > 0 ? (
                       <Bar
                         data={{
-                          labels: stats.popularCities.map(c => c.city || 'Белгісіз'),
+                          labels: (stats.popularCities || []).map(c => c.city || '---'),
                           datasets: [{
-                            label: 'Бронь саны',
-                            data: stats.popularCities.map(c => c.bookings),
+                            label: language === 'kk' ? 'Бронь саны' : 'Кол-во броней',
+                            data: (stats.popularCities || []).map(c => c.bookings),
                             backgroundColor: 'rgba(14, 165, 233, 0.8)',
                             borderRadius: 6,
                           }]
@@ -391,25 +413,25 @@ function AdminPage() {
                           }
                         }}
                       />
-                    ) : <p style={{ color: '#646a80' }}>No data available</p>}
+                    ) : <p style={{ color: '#646a80' }}>{language === 'kk' ? 'Деректер жоқ' : 'Нет данных'}</p>}
                   </div>
 
                   <div className="admin-chart-card">
-                    <h3 className="admin-chart-title">Recent Activity Log</h3>
+                    <h3 className="admin-chart-title">{t.admin.dashboard.charts.recentActivity}</h3>
                     <div className="activity-list">
                       {payments.slice(0, 5).map(p => (
                         <div className="activity-item" key={`act-${p.id}`}>
                           <div className="activity-icon">💳</div>
                           <div className="activity-content">
-                            <div className="activity-title">{p.name} booked a tour</div>
-                            <div className="activity-meta">Dest: {p.city}</div>
+                            <div className="activity-title">{p.name} {language === 'kk' ? 'турды броньдады' : 'забронировал тур'}</div>
+                            <div className="activity-meta">{language === 'kk' ? 'Бағыт' : 'Напр'}: {p.city}</div>
                           </div>
                           <div className="activity-time">
-                            {new Date(p.created_at).toLocaleDateString()}
+                            {new Date(p.created_at).toLocaleDateString(locale)}
                           </div>
                         </div>
                       ))}
-                      {payments.length === 0 && <p style={{ color: '#646a80' }}>No recent activity.</p>}
+                      {payments.length === 0 && <p style={{ color: '#646a80' }}>{language === 'kk' ? 'Белсенділік жоқ.' : 'Нет активности.'}</p>}
                     </div>
                   </div>
                 </div>
@@ -418,49 +440,57 @@ function AdminPage() {
 
             {activeTab === 'users' && (
               <>
-                <h1 className="admin-page-title">Users</h1>
-                <p className="admin-page-subtitle">Manage system users and access roles.</p>
+                <h1 className="admin-page-title">{t.admin.sidebar.users}</h1>
+                <p className="admin-page-subtitle">{language === 'kk' ? 'Пайдаланушыларды басқару' : 'Управление пользователями'}</p>
 
                 <div className="admin-table-wrapper">
                   <div className="admin-table-header">
-                    <h3>All Users ({filteredUsers.length})</h3>
+                    <h3>{language === 'kk' ? 'Барлығы' : 'Все'} ({filteredUsers.length})</h3>
                   </div>
                   <table className="admin-table">
                     <thead>
-                      <tr><th>User</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                      <tr>
+                        <th>{language === 'kk' ? 'Пайдаланушы' : 'Пользователь'}</th>
+                        <th>Email</th>
+                        <th>{language === 'kk' ? 'Рөлі' : 'Роль'}</th>
+                        <th>{language === 'kk' ? 'Статус' : 'Статус'}</th>
+                        <th>{language === 'kk' ? 'Тіркелді' : 'Регистрация'}</th>
+                        <th>{language === 'kk' ? 'Әрекет' : 'Действия'}</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {filteredUsers.length === 0 ? (
-                        <tr><td colSpan="5" style={{ textAlign: 'center' }}>No users found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="6" style={{ textAlign: 'center' }}>{language === 'kk' ? 'Табылмады' : 'Не найдено'}</td></tr>
                       ) : (
-                        filteredUsers.map(u => (
-                          <tr key={u.id}>
+                        filteredUsers.map(userItem => (
+                          <tr key={userItem.id}>
                             <td>
                               <div className="user-info">
-                                <div className="user-avatar">{getInitials(u.name)}</div>
-                                <span style={{ color: '#fff', fontWeight: 500 }}>{u.name}</span>
+                                <div className="user-avatar">{getInitials(userItem.name)}</div>
+                                <span style={{ color: '#fff', fontWeight: 500 }}>{userItem.name}</span>
                               </div>
                             </td>
-                            <td>{u.email}</td>
+                            <td>{userItem.email}</td>
                             <td>
-                              <select
+                              <select 
                                 className="admin-select"
-                                value={u.role || 'user'}
-                                onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                                value={userItem.role || 'user'} 
+                                onChange={(e) => handleRoleChange(userItem.id, e.target.value)}
+                                disabled={userItem.id === currentUser.id}
                               >
                                 <option value="user">User</option>
                                 <option value="admin">Admin</option>
                               </select>
                             </td>
                             <td>
-                              <span className={`status-badge ${u.role === 'admin' ? 'status-active' : 'status-inactive'}`}>
-                                {u.role === 'admin' ? 'Active' : 'Offline'}
+                              <span className={`status-badge ${userItem.role === 'admin' ? 'status-active' : 'status-inactive'}`}>
+                                {userItem.role === 'admin' ? 'Premium' : 'Standard'}
                               </span>
                             </td>
-                            <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                            <td>{new Date(userItem.created_at).toLocaleDateString(locale)}</td>
                             <td>
-                              {u.id !== currentUser.id && (
-                                <button className="btn-action delete" onClick={() => handleDeleteUser(u.id)} title="Delete User">🗑️</button>
+                              {userItem.id !== currentUser.id && (
+                                <button className="btn-action delete" onClick={() => handleDeleteUser(userItem.id)} title={t.admin.buttons.delete}>🗑️</button>
                               )}
                             </td>
                           </tr>
@@ -474,35 +504,42 @@ function AdminPage() {
 
             {activeTab === 'tours' && (
               <>
-                <h1 className="admin-page-title">Tours</h1>
-                <p className="admin-page-subtitle">Manage travel destinations and pricing.</p>
+                <h1 className="admin-page-title">{t.admin.sidebar.tours}</h1>
+                <p className="admin-page-subtitle">{language === 'kk' ? 'Турларды басқару' : 'Управление турами'}</p>
 
                 <div className="admin-table-wrapper" style={{ marginBottom: '2rem' }}>
                   <div className="admin-table-header">
-                    <h3>All Tours ({filteredTours.length})</h3>
-                    <button className="admin-btn" onClick={openCreateModal}>+ Add New Tour</button>
+                    <h3>{language === 'kk' ? 'Барлығы' : 'Все'} ({filteredTours.length})</h3>
+                    <button className="admin-btn" onClick={openCreateModal}>{t.admin.buttons.addNewTour}</button>
                   </div>
                   <table className="admin-table">
                     <thead>
-                      <tr><th>ID</th><th>Image</th><th>Title</th><th>Price</th><th>City</th><th>Actions</th></tr>
+                      <tr>
+                        <th>ID</th>
+                        <th>{language === 'kk' ? 'Сурет' : 'Фото'}</th>
+                        <th>{language === 'kk' ? 'Атауы' : 'Название'}</th>
+                        <th>{language === 'kk' ? 'Бағасы' : 'Цена'}</th>
+                        <th>{language === 'kk' ? 'Қала' : 'Город'}</th>
+                        <th>{language === 'kk' ? 'Әрекет' : 'Действия'}</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {filteredTours.length === 0 ? (
-                        <tr><td colSpan="6" style={{ textAlign: 'center' }}>No tours found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="6" style={{ textAlign: 'center' }}>{language === 'kk' ? 'Табылмады' : 'Не найдено'}</td></tr>
                       ) : (
-                        filteredTours.map(t => (
-                          <tr key={t.id}>
-                            <td>#{t.id}</td>
+                        filteredTours.map(tourItem => (
+                          <tr key={tourItem.id}>
+                            <td>#{tourItem.id}</td>
                             <td>
-                              <img src={t.image_url} alt={t.title} className="tour-thumb" />
+                              <img src={tourItem.image_url} alt={tourItem.title} className="tour-thumb" />
                             </td>
-                            <td style={{ color: '#fff' }}>{t.title}</td>
-                            <td style={{ color: '#10b981', fontWeight: 'bold' }}>{t.price} ₸</td>
-                            <td>{t.city}</td>
+                            <td style={{ color: '#fff' }}>{tourItem.title}</td>
+                            <td style={{ color: '#10b981', fontWeight: 'bold' }}>{(parseInt(tourItem.price) || 0).toLocaleString(locale)} ₸</td>
+                            <td>{tourItem.city}</td>
                             <td>
                               <div className="admin-actions">
-                                <button className="btn-action edit" onClick={() => openEditModal(t)} title="Edit">✏️</button>
-                                <button className="btn-action delete" onClick={() => handleDeleteTour(t.id)} title="Delete">🗑️</button>
+                                <button className="btn-action edit" onClick={() => openEditModal(tourItem)} title={t.admin.buttons.edit}>✏️</button>
+                                <button className="btn-action delete" onClick={() => handleDeleteTour(tourItem.id)} title={t.admin.buttons.delete}>🗑️</button>
                               </div>
                             </td>
                           </tr>
@@ -516,33 +553,41 @@ function AdminPage() {
 
             {activeTab === 'payments' && (
               <>
-                <h1 className="admin-page-title">Payments (Orders)</h1>
-                <p className="admin-page-subtitle">Recent payment transactions.</p>
+                <h1 className="admin-page-title">{t.admin.sidebar.payments}</h1>
+                <p className="admin-page-subtitle">{language === 'kk' ? 'Тапсырыстар тарихы' : 'История заказов'}</p>
 
                 <div className="admin-table-wrapper">
                   <div className="admin-table-header">
-                    <h3>Recent Bookings ({filteredPayments.length})</h3>
-                    <button className="admin-btn btn-export" onClick={handleExportCSV}>📥 Export CSV</button>
+                    <h3>{language === 'kk' ? 'Барлығы' : 'Все'} ({filteredPayments.length})</h3>
+                    <button className="admin-btn btn-export" onClick={handleExportCSV}>{t.admin.buttons.exportCSV}</button>
                   </div>
                   <table className="admin-table">
                     <thead>
-                      <tr><th>ID</th><th>Client</th><th>Guests</th><th>City</th><th>Tour Date</th><th>Amount</th><th>Date</th></tr>
+                      <tr>
+                        <th>ID</th>
+                        <th>{language === 'kk' ? 'Клиент' : 'Клиент'}</th>
+                        <th>{language === 'kk' ? 'Адам' : 'Люди'}</th>
+                        <th>{language === 'kk' ? 'Қала' : 'Город'}</th>
+                        <th>{language === 'kk' ? 'Күні' : 'Дата тура'}</th>
+                        <th>{language === 'kk' ? 'Сомасы' : 'Сумма'}</th>
+                        <th>{language === 'kk' ? 'Төленді' : 'Создан'}</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {filteredPayments.length === 0 ? (
-                        <tr><td colSpan="7" style={{ textAlign: 'center' }}>No payments found matching "{searchQuery}"</td></tr>
+                        <tr><td colSpan="7" style={{ textAlign: 'center' }}>{language === 'kk' ? 'Табылмады' : 'Не найдено'}</td></tr>
                       ) : (
-                        filteredPayments.map(p => (
-                          <tr key={p.id}>
-                            <td>#{p.id}</td>
-                            <td style={{ color: '#fff' }}>{p.name}</td>
-                            <td>{p.guests_count || 1} адам</td>
-                            <td>{p.city}</td>
-                            <td>{p.tour_date ? new Date(p.tour_date).toLocaleDateString('kk-KZ') : '---'}</td>
+                        filteredPayments.map(payItem => (
+                          <tr key={payItem.id}>
+                            <td>#{payItem.id}</td>
+                            <td style={{ color: '#fff' }}>{payItem.name}</td>
+                            <td>{payItem.guests_count || 1}</td>
+                            <td>{payItem.city}</td>
+                            <td>{payItem.tour_date ? new Date(payItem.tour_date).toLocaleDateString(locale) : '---'}</td>
                             <td style={{ color: '#10b981', fontWeight: '800' }}>
-                              {(p.total_amount || 0).toLocaleString('kk-KZ')} ₸
+                              {(payItem.total_amount || 0).toLocaleString(locale)} ₸
                             </td>
-                            <td>{new Date(p.created_at).toLocaleDateString()}</td>
+                            <td>{new Date(payItem.created_at).toLocaleDateString(locale)}</td>
                           </tr>
                         ))
                       )}
@@ -561,29 +606,28 @@ function AdminPage() {
           <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
               <h2 className="admin-modal-title">
-                {editingTour ? `Edit Tour #${editingTour.id}` : 'Create New Tour'}
+                {editingTour 
+                  ? `${language === 'kk' ? 'Турды өңдеу' : 'Редактировать тур'} #${editingTour.id}` 
+                  : (language === 'kk' ? 'Жаңа тур жасау' : 'Создать новый тур')}
               </h2>
               <button className="admin-modal-close" onClick={() => setIsModalOpen(false)}>×</button>
             </div>
 
             <form onSubmit={handleTourSubmit}>
               <div className="admin-form-inner">
-                <input required type="text" placeholder="Title" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="admin-form-input" />
-                <input required type="number" placeholder="Price (KZT)" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="admin-form-input" />
-                <input type="text" placeholder="City" value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="admin-form-input" />
-                <input type="text" placeholder="Image URL" value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="admin-form-input" />
-                <input type="text" placeholder="Google Maps URL (route)" value={formData.map_url} onChange={e => setFormData({ ...formData, map_url: e.target.value })} className="admin-form-input" />
-                <p style={{ gridColumn: '1 / -1', fontSize: '0.75rem', color: '#646a80', marginTop: '-10px', marginBottom: '4px' }}>
-                  💡 Кеңес: Карта дұрыс көрінуі үшін 'Embed map' (Бөлісу → Картаны ендіру) кодын пайдаланған жөн.
-                </p>
+                <input required type="text" placeholder={language === 'kk' ? 'Атауы' : 'Название'} value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="admin-form-input" />
+                <input required type="number" placeholder={language === 'kk' ? 'Бағасы (₸)' : 'Цена (₸)'} value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="admin-form-input" />
+                <input type="text" placeholder={language === 'kk' ? 'Қала' : 'Город'} value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} className="admin-form-input" />
+                <input type="text" placeholder={language === 'kk' ? 'Сурет URL' : 'URL фото'} value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="admin-form-input" />
+                <input type="text" placeholder={language === 'kk' ? 'Карта URL' : 'URL карты'} value={formData.map_url} onChange={e => setFormData({ ...formData, map_url: e.target.value })} className="admin-form-input" />
               </div>
               <div className="admin-form-inner full">
-                <textarea placeholder="Description" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="admin-form-input" rows="3" style={{ height: 'auto', fontFamily: 'inherit' }}></textarea>
-                <textarea placeholder="Route text (e.g. A → B → C)" value={formData.route_text} onChange={e => setFormData({ ...formData, route_text: e.target.value })} className="admin-form-input" rows="2" style={{ height: 'auto', fontFamily: 'inherit', marginTop: '12px' }}></textarea>
+                <textarea placeholder={language === 'kk' ? 'Сипаттама' : 'Описание'} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="admin-form-input" rows="3" style={{ height: 'auto', fontFamily: 'inherit' }}></textarea>
+                <textarea placeholder={language === 'kk' ? 'Маршрут мәтіні (A → B)' : 'Текст маршрута (A → B)'} value={formData.route_text} onChange={e => setFormData({ ...formData, route_text: e.target.value })} className="admin-form-input" rows="2" style={{ height: 'auto', fontFamily: 'inherit', marginTop: '12px' }}></textarea>
               </div>
               <div className="admin-form-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className="admin-btn">Save Tour</button>
+                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>{t.admin.buttons.cancel}</button>
+                <button type="submit" className="admin-btn">{t.admin.buttons.save}</button>
               </div>
             </form>
           </div>

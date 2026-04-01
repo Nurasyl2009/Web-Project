@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Notification from '../components/Notification';
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 
 function LoginPage() {
+  const { language } = useAppContext();
+  const t = translations[language];
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -10,10 +14,10 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const validate = () => {
-    if (!email.trim()) return 'Email енгізіңіз';
-    if (!email.includes('@')) return 'Email форматы дұрыс емес';
-    if (!password) return 'Құпия сөзді енгізіңіз';
-    if (password.length < 6) return 'Құпия сөз кем дегенде 6 символ болуы керек';
+    if (!email.trim()) return t.auth.emailLabel + ' ' + (language === 'kk' ? 'енгізіңіз' : 'введите');
+    if (!email.includes('@')) return t.auth.emailPlaceholder + ' ' + (language === 'kk' ? 'дұрыс емес' : 'некорректен');
+    if (!password) return t.auth.passwordLabel + ' ' + (language === 'kk' ? 'енгізіңіз' : 'введите');
+    if (password.length < 6) return t.auth.passwordPlaceholder;
     return null;
   };
 
@@ -36,13 +40,13 @@ function LoginPage() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         window.dispatchEvent(new Event('userChanged'));
-        setNotification({ message: 'Сәтті кірдіңіз!', type: 'success' });
+        setNotification({ message: language === 'kk' ? 'Сәтті кірдіңіз!' : 'Успешный вход!', type: 'success' });
         setTimeout(() => navigate('/profile'), 1200);
       } else {
-        setNotification({ message: data.message || 'Кіру мүмкін болмады', type: 'error' });
+        setNotification({ message: data.message || t.common.error, type: 'error' });
       }
     } catch {
-      setNotification({ message: 'Серверге қосылу мүмкін болмады', type: 'error' });
+      setNotification({ message: t.common.errorServer, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -58,23 +62,23 @@ function LoginPage() {
         />
       )}
       <div className="auth-box">
-        <h1>Кіру 👋</h1>
-        <p className="subtitle">Аккаунтыңызға кіріңіз</p>
+        <h1>{t.auth.loginTitle}</h1>
+        <p className="subtitle">{t.auth.loginSub}</p>
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
-            <label htmlFor="login-email">Email</label>
+            <label htmlFor="login-email">{t.auth.emailLabel}</label>
             <input
               id="login-email"
               type="email"
               className="form-input"
-              placeholder="you@example.com"
+              placeholder={t.auth.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="login-password">Құпия сөз</label>
+            <label htmlFor="login-password">{t.auth.passwordLabel}</label>
             <input
               id="login-password"
               type="password"
@@ -86,11 +90,11 @@ function LoginPage() {
             />
           </div>
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Тексерілуде...' : 'Кіру'}
+            {loading ? t.auth.checkBtn : t.auth.loginBtn}
           </button>
         </form>
         <p className="auth-footer">
-          Аккаунт жоқ па? <Link to="/register">Тіркелу</Link>
+          {t.auth.noAccount} <Link to="/register">{t.auth.registerBtn}</Link>
         </p>
       </div>
     </div>

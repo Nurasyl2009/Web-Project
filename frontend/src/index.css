@@ -30,6 +30,19 @@
   --font-display: 'Nunito', sans-serif;
 }
 
+/* Dark Theme Variables */
+body.dark {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #334155;
+  --border: #334155;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
 *,
 *::before,
 *::after {
@@ -141,6 +154,40 @@ button {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+}
+
+.header__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: 1.5rem;
+}
+
+.control-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+}
+
+.control-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.lang-btn {
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-family: var(--font-display);
 }
 
 .btn-outline {

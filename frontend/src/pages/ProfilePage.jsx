@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import TourCard from '../components/TourCard';
 import toast from 'react-hot-toast';
+import { useAppContext } from '../context/AppContext';
+import { translations } from '../utils/translations';
 
 function getInitials(name = '') {
   return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
 function ProfilePage() {
+  const { language } = useAppContext();
+  const t = translations[language];
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ bookedTours: 0, visitedCities: 0 });
@@ -92,12 +96,12 @@ function ProfilePage() {
         localStorage.setItem('user', JSON.stringify(updated));
         window.dispatchEvent(new Event('userChanged'));
         setEditMode(false);
-        toast.success('Деректер сәтті жаңартылды!');
+        toast.success(t.profile.successUpdate);
       } else {
-        toast.error(data.message || 'Қате орын алды');
+        toast.error(data.message || t.common.error);
       }
     } catch {
-      toast.error('Серверге қосылу мүмкін болмады');
+      toast.error(t.common.errorServer);
     }
     setSaving(false);
   };
@@ -107,18 +111,13 @@ function ProfilePage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Тек суреттерді жүктеуге болады!');
+      toast.error(language === 'kk' ? 'Тек суреттерді жүктеуге болады!' : 'Можно загружать только изображения!');
       return;
     }
 
     const maxBytes = 2 * 1024 * 1024;
     if (file.size > maxBytes) {
-      toast.error('Файл тым үлкен. Максимум 2MB.');
-      return;
-    }
-
-    if (file.name.length > 80) {
-      toast.error('Файл атауы тым ұзын. 80 символдан аспасын.');
+      toast.error(language === 'kk' ? 'Файл тым үлкен. Максимум 2MB.' : 'Файл слишком большой. Максимум 2MB.');
       return;
     }
 
@@ -126,7 +125,7 @@ function ProfilePage() {
     formData.append('avatar', file);
 
     setAvatarLoading(true);
-    const toastId = toast.loading('Сурет жүктелуде...');
+    const toastId = toast.loading(t.common.loading);
 
     try {
       const token = localStorage.getItem('token');
@@ -137,16 +136,16 @@ function ProfilePage() {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success('Аватар жаңартылды!', { id: toastId });
+        toast.success(language === 'kk' ? 'Аватар жаңартылды!' : 'Аватар обновлен!', { id: toastId });
         const updatedUser = { ...user, avatar_url: data.avatar_url };
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
         window.dispatchEvent(new Event('userChanged'));
       } else {
-        toast.error(data.message || 'Қате шықты', { id: toastId });
+        toast.error(data.message || t.common.error, { id: toastId });
       }
     } catch (err) {
-      toast.error('Серверге қосылу мүмкін болмады', { id: toastId });
+      toast.error(t.common.errorServer, { id: toastId });
     } finally {
       setAvatarLoading(false);
     }
@@ -163,15 +162,13 @@ function ProfilePage() {
   if (!user) return null;
 
   const initials = getInitials(user.name);
+  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
   const joinDate = user.created_at
-    ? new Date(user.created_at).toLocaleDateString('kk-KZ', { year: 'numeric', month: 'long' })
-    : '2026 жыл';
+    ? new Date(user.created_at).toLocaleDateString(locale, { year: 'numeric', month: 'long' })
+    : '2026';
 
   return (
-
     <div className="profile-page">
-
-
       <div className="profile-hero">
         <div className="profile-hero__bg" />
         <div className="profile-hero__content">
@@ -189,10 +186,10 @@ function ProfilePage() {
           <div className="profile-hero__info">
             <h1 className="profile-hero__name">{user.name}</h1>
             <p className="profile-hero__email">✉️ {user.email}</p>
-            <p className="profile-hero__since">📅 Тіркелген: {joinDate}</p>
+            <p className="profile-hero__since">📅 {t.profile.joined} {joinDate}</p>
           </div>
           <button className="profile-logout-btn" onClick={handleLogout}>
-            🚪 Шығу
+            {t.profile.logout}
           </button>
         </div>
       </div>
@@ -201,15 +198,15 @@ function ProfilePage() {
         <div className="profile-stats__grid container">
           <div className="profile-stat">
             <span className="profile-stat__num">{stats.bookedTours}</span>
-            <span className="profile-stat__label">Сатып алынған турлар</span>
+            <span className="profile-stat__label">{t.profile.bookedTours}</span>
           </div>
           <div className="profile-stat">
             <span className="profile-stat__num">{stats.visitedCities}</span>
-            <span className="profile-stat__label">Барылған қалалар</span>
+            <span className="profile-stat__label">{t.profile.visitedCities}</span>
           </div>
           <div className="profile-stat">
-            <span className="profile-stat__num">{stats.bookedTours > 0 ? '⭐ VIP' : 'Жаңа'}</span>
-            <span className="profile-stat__label">Мәртебе</span>
+            <span className="profile-stat__num">{stats.bookedTours > 0 ? t.profile.vip : t.profile.new}</span>
+            <span className="profile-stat__label">{t.profile.status}</span>
           </div>
         </div>
       </div>
@@ -220,36 +217,36 @@ function ProfilePage() {
             className={`profile-tab${activeTab === 'overview' ? ' active' : ''}`}
             onClick={() => setActiveTab('overview')}
           >
-            👤 Профиль
+            {t.profile.tabs.overview}
           </button>
           <button
             className={`profile-tab${activeTab === 'purchases' ? ' active' : ''}`}
             onClick={() => setActiveTab('purchases')}
           >
-            🧳 Тарих ({purchases.length})
+            {t.profile.tabs.purchases} ({purchases.length})
           </button>
           <button
             className={`profile-tab${activeTab === 'favorites' ? ' active' : ''}`}
             onClick={() => setActiveTab('favorites')}
           >
-            ❤️ Таңдаулы ({favorites.length})
+            {t.profile.tabs.favorites} ({favorites.length})
           </button>
         </div>
 
         {activeTab === 'overview' && (
           <div className="profile-card">
             <div className="profile-card__header">
-              <h2>Жеке ақпарат</h2>
+              <h2>{t.profile.personalInfo}</h2>
               {!editMode && (
                 <button className="profile-edit-btn" onClick={() => setEditMode(true)}>
-                  ✏️ Өзгерту
+                  {t.profile.edit}
                 </button>
               )}
             </div>
 
             <div className="profile-fields" style={{ marginBottom: '1rem' }}>
               <div className="profile-field">
-                <label>Аватар</label>
+                <label>{t.profile.avatar}</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', background: 'rgba(255,255,255,0.08)', display: 'grid', placeItems: 'center' }}>
                     {user.avatar_url ? (
@@ -259,7 +256,7 @@ function ProfilePage() {
                     )}
                   </div>
                   <label className="btn-outline" style={{ cursor: avatarLoading ? 'not-allowed' : 'pointer', opacity: avatarLoading ? 0.6 : 1 }}>
-                    {avatarLoading ? 'Жүктелуде...' : '🖼️ Аватарды өзгерту'}
+                    {avatarLoading ? t.common.loading : t.profile.changeAvatar}
                     <input
                       type="file"
                       accept="image/*"
@@ -268,41 +265,41 @@ function ProfilePage() {
                       onChange={handleAvatarChange}
                     />
                   </label>
-                  <span style={{ opacity: 0.8, fontSize: 13 }}>PNG/JPG, 2MB дейін, атауы 80 символға дейін</span>
+                  <span style={{ opacity: 0.8, fontSize: 13 }}>{t.profile.avatarHint}</span>
                 </div>
               </div>
             </div>
 
             <div className="profile-fields">
               <div className="profile-field">
-                <label>Аты-жөні</label>
+                <label>{t.auth.nameLabel}</label>
                 {editMode ? (
                   <input
                     className="profile-input"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    placeholder="Атыңызды енгізіңіз"
+                    placeholder={t.auth.namePlaceholder}
                   />
                 ) : (
                   <span>{user.name}</span>
                 )}
               </div>
               <div className="profile-field">
-                <label>Email</label>
+                <label>{t.auth.emailLabel}</label>
                 <span>{user.email}</span>
               </div>
               <div className="profile-field">
-                <label>Аккаунт ID</label>
+                <label>{language === 'kk' ? 'Аккаунт ID' : 'ID Аккаунта'}</label>
                 <span className="profile-id">#{user.id}</span>
               </div>
             </div>
             {editMode && (
               <div className="profile-edit-actions">
                 <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                  {saving ? 'Сақталуда...' : '💾 Сақтау'}
+                  {saving ? t.profile.save + '...' : t.profile.save}
                 </button>
                 <button className="btn-outline" onClick={() => { setEditMode(false); setEditName(user.name); }}>
-                  Бас тарту
+                  {t.profile.cancel}
                 </button>
               </div>
             )}
@@ -312,13 +309,13 @@ function ProfilePage() {
         {activeTab === 'purchases' && (
           <div className="profile-card">
             <div className="profile-card__header">
-              <h2>Сатып алу тарихы</h2>
+              <h2>{t.profile.historyTitle}</h2>
             </div>
             {purchases.length === 0 ? (
               <div className="profile-empty">
                 <div className="profile-empty__icon">🧳</div>
-                <p>Сіз әлі тур сатып алмадыңыз</p>
-                <Link to="/buy" className="btn-primary">Тур сатып алу</Link>
+                <p>{t.profile.emptyPurchases}</p>
+                <Link to="/buy" className="btn-primary">{t.profile.buyBtn}</Link>
               </div>
             ) : (
               <div className="purchase-list">
@@ -328,14 +325,14 @@ function ProfilePage() {
                     <div className="purchase-item__info">
                       <strong className="purchase-item__city">{p.city}</strong>
                       <div className="purchase-item__meta" style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '4px' }}>
-                        <span>👤 {p.guests_count || 1} адам</span> •
-                        <span> 💰 {parseInt(p.total_amount || 0).toLocaleString('kk-KZ')} ₸</span>
+                        <span>👤 {p.guests_count || 1} {t.profile.guests}</span> •
+                        <span> 💰 {parseInt(p.total_amount || 0).toLocaleString(locale)} ₸</span>
                       </div>
                       <div className="purchase-item__meta" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
-                        📅 Саяхат күні: <strong>{p.tour_date ? new Date(p.tour_date).toLocaleDateString('kk-KZ') : '---'}</strong>
+                        📅 {t.profile.tourDate} <strong>{p.tour_date ? new Date(p.tour_date).toLocaleDateString(locale) : '---'}</strong>
                       </div>
                     </div>
-                    <div className="purchase-item__badge" style={{ marginLeft: 'auto' }}>Сәтті ✓</div>
+                    <div className="purchase-item__badge" style={{ marginLeft: 'auto' }}>{language === 'kk' ? 'Сәтті ✓' : 'Успешно ✓'}</div>
                   </div>
                 ))}
               </div>
@@ -346,13 +343,13 @@ function ProfilePage() {
         {activeTab === 'favorites' && (
           <div className="profile-card">
             <div className="profile-card__header">
-              <h2>❤️ Таңдаулы турлар</h2>
+              <h2>{t.profile.favoritesTitle}</h2>
             </div>
             {favorites.length === 0 ? (
               <div className="profile-empty">
                 <div className="profile-empty__icon">🤍</div>
-                <p>Сізде әлі таңдаулы турлар жоқ.</p>
-                <Link to="/tours" className="btn-primary">Турларды көру</Link>
+                <p>{t.profile.emptyFavorites}</p>
+                <Link to="/tours" className="btn-primary">{t.profile.viewToursBtn}</Link>
               </div>
             ) : (
               <div className="tours-grid" style={{ marginTop: '1.5rem', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
