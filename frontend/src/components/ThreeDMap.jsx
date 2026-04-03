@@ -14,14 +14,12 @@ const containerStyle = {
 };
 
 function ThreeDMap({ cityName, onClose, t }) {
-  // IMPORTANT: The user should provide their own API key here.
-  // Using a placeholder for now.
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "" // ПАЙДАЛАНУШЫ ОСЫ ЖЕРГЕ ӨЗІНІҢ API КІЛТІН ҚОЮЫ КЕРЕК
+    googleMapsApiKey: ""
   });
 
-  const [viewMode, setViewMode] = useState('street'); // 'street' or 'map'
+  const [viewMode, setViewMode] = useState('street');
   const center = cityCoords[cityName] || { lat: 48.8566, lng: 2.3522 };
 
   if (!isLoaded) return <div className="map-loading">Loading...</div>;
@@ -32,14 +30,14 @@ function ThreeDMap({ cityName, onClose, t }) {
         <div className="three-d-modal__header">
           <h3>3D: {cityName}</h3>
           <div className="three-d-modal__controls">
-            <button 
-              className={`btn-toggle ${viewMode === 'street' ? 'active' : ''}`} 
+            <button
+              className={`btn-toggle ${viewMode === 'street' ? 'active' : ''}`}
               onClick={() => setViewMode('street')}
             >
               {t.cityRoute.streetView}
             </button>
-            <button 
-              className={`btn-toggle ${viewMode === 'map' ? 'active' : ''}`} 
+            <button
+              className={`btn-toggle ${viewMode === 'map' ? 'active' : ''}`}
               onClick={() => setViewMode('map')}
             >
               {t.cityRoute.satelliteView}
@@ -47,7 +45,7 @@ function ThreeDMap({ cityName, onClose, t }) {
             <button className="btn-close" onClick={onClose}>✕</button>
           </div>
         </div>
-        
+
         <div className="three-d-modal__body">
           <GoogleMap
             mapContainerStyle={containerStyle}

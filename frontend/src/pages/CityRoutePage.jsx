@@ -60,8 +60,8 @@ function CityRoutePage() {
       <div className="route-hero" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)' }}>
         <h1>🗺️ {data.name} {t.cityRoute.title}</h1>
         <p>{data.route_text || t.cityRoute.subtitle}</p>
-        <button 
-          className="btn-3d-view" 
+        <button
+          className="btn-3d-view"
           onClick={() => setShow3D(true)}
           style={{
             marginTop: '1.5rem',
@@ -88,14 +88,14 @@ function CityRoutePage() {
             e.target.style.transform = 'translateY(0)';
           }}
         >
-          <span>🚀</span> {t.cityRoute.view3D}
+          <span>3D</span> {t.cityRoute.view3D}
         </button>
       </div>
 
       {show3D && (
-        <ThreeDMap 
-          cityName={data.name} 
-          onClose={() => setShow3D(false)} 
+        <ThreeDMap
+          cityName={data.name}
+          onClose={() => setShow3D(false)}
           t={t}
         />
       )}

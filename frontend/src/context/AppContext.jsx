@@ -4,8 +4,7 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  
-  // Тіл тек 'kk' немесе 'ru' болуын қадағалаймыз
+
   const savedLang = localStorage.getItem('lang');
   const [language, setLanguage] = useState((savedLang === 'kk' || savedLang === 'ru') ? savedLang : 'kk');
 

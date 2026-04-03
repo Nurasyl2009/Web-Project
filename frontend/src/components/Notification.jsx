@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
 
-/**
- * Toast notification component.
- * @param {string} message - Message to display
- * @param {'success'|'error'} type - Notification type
- * @param {function} onClose - Called when notification should close
- */
+
 function Notification({ message, type = 'success', onClose }) {
   const [visible, setVisible] = useState(true);
 

@@ -1,22 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-/**
- * Reusable tour card component.
- * @param {object} tour - Tour data object
- * @param {boolean} isFavoriteInit - Initial favorite state from parent
- * @param {function} onToggleFavorite - Optional callback when toggled
- */
 import { useAppContext } from '../context/AppContext';
 import { translations } from '../utils/translations';
 import ThreeDMap from './ThreeDMap';
-
-/**
- * Reusable tour card component.
- * @param {object} tour - Tour data object
- * @param {boolean} isFavoriteInit - Initial favorite state from parent
- * @param {function} onToggleFavorite - Optional callback when toggled
- */
 function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
   const { language } = useAppContext();
   const t = translations[language];
@@ -25,7 +12,6 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
   const [loading, setLoading] = useState(false);
   const [show3D, setShow3D] = useState(false);
 
-  // Sync state if parent changes it
   useEffect(() => {
     setIsFavorite(isFavoriteInit);
   }, [isFavoriteInit]);
@@ -61,7 +47,7 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
 
   return (
     <div className="tour-card" style={{ position: 'relative' }}>
-      <button 
+      <button
         onClick={handleFavoriteClick}
         disabled={loading}
         title={isFavorite ? t.tourCard.favRemove : t.tourCard.favAdd}
@@ -88,7 +74,7 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
         {isFavorite ? '❤️' : '🤍'}
       </button>
 
-      <button 
+      <button
         onClick={(e) => { e.preventDefault(); setShow3D(true); }}
         title={t.cityRoute.view3D}
         style={{
@@ -123,9 +109,9 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
       </button>
 
       {show3D && (
-        <ThreeDMap 
-          cityName={city || badge || title} 
-          onClose={() => setShow3D(false)} 
+        <ThreeDMap
+          cityName={city || badge || title}
+          onClose={() => setShow3D(false)}
           t={t}
         />
       )}

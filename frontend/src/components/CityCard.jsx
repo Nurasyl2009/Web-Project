@@ -1,16 +1,6 @@
 import { Link } from 'react-router-dom';
 
-/**
- * Reusable city card that links to the city route page.
- * @param {object} city - City data
- * @param {string} city.key - URL slug (e.g. "paris")
- * @param {string} city.name - Display name
- * @param {string} city.country - Country name
- * @param {string} city.icon - Emoji icon
- * @param {string} city.image - Image URL
- * @param {string} city.route - Route stop summary
- * @param {string} city.stops - Number of stops text
- */
+
 function CityCard({ city }) {
   const { key, name, country, icon, image, route, stops } = city;
   const safeCountry = country || '—';
