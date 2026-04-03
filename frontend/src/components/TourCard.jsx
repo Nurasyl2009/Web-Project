@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
  */
 import { useAppContext } from '../context/AppContext';
 import { translations } from '../utils/translations';
+import ThreeDMap from './ThreeDMap';
 
 /**
  * Reusable tour card component.
@@ -19,9 +20,10 @@ import { translations } from '../utils/translations';
 function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
   const { language } = useAppContext();
   const t = translations[language];
-  const { id, title, description, price, image, badge } = tour;
+  const { id, title, description, price, image, badge, city } = tour;
   const [isFavorite, setIsFavorite] = useState(isFavoriteInit);
   const [loading, setLoading] = useState(false);
+  const [show3D, setShow3D] = useState(false);
 
   // Sync state if parent changes it
   useEffect(() => {
@@ -85,6 +87,48 @@ function TourCard({ tour, isFavoriteInit = false, onToggleFavorite }) {
       >
         {isFavorite ? '❤️' : '🤍'}
       </button>
+
+      <button 
+        onClick={(e) => { e.preventDefault(); setShow3D(true); }}
+        title={t.cityRoute.view3D}
+        style={{
+          position: 'absolute',
+          top: '12px',
+          left: '12px',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(4px)',
+          border: 'none',
+          borderRadius: '50%',
+          width: '36px',
+          height: '36px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '1.1rem',
+          cursor: 'pointer',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+          zIndex: 10,
+          transition: 'all 0.2s',
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.background = '#fff';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)';
+        }}
+      >
+        🚀
+      </button>
+
+      {show3D && (
+        <ThreeDMap 
+          cityName={city || badge || title} 
+          onClose={() => setShow3D(false)} 
+          t={t}
+        />
+      )}
 
       <img
         src={image}

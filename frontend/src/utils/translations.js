@@ -173,7 +173,11 @@ export const translations = {
       noMap: 'Бұл қала үшін embed-карта жоқ. Төмендегі сілтеме арқылы Google Maps-та ашыңыз.',
       openMap: 'Google Maps-та ашу →',
       noLink: 'Маршрут сілтемесі қосылмаған',
-      backBtn: '← Барлық қалаларға оралу'
+      backBtn: '← Барлық қалаларға оралу',
+      view3D: '3D Көрініс 🚀',
+      close: 'Жабу',
+      streetView: 'Көше көрінісі (Street View)',
+      satelliteView: '3D Карта (Satellite)'
     },
     notFound: {
       title: 'Бет табылмады',
@@ -392,7 +396,11 @@ export const translations = {
       noMap: 'Для этого города нет встроенной карты. Откройте Google Maps по ссылке ниже.',
       openMap: 'Открыть в Google Maps →',
       noLink: 'Ссылка на маршрут не добавлена',
-      backBtn: '← Вернуться ко всем городам'
+      backBtn: '← Вернуться ко всем городам',
+      view3D: '3D Вид 🚀',
+      close: 'Закрыть',
+      streetView: 'Панорама улиц (Street View)',
+      satelliteView: '3D Карта (Satellite)'
     },
     notFound: {
       title: 'Страница не найдена',

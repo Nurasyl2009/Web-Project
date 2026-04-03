@@ -1928,3 +1928,140 @@ button {
 .receipt-footer {
   padding-top: 1.5rem;
 }
+/* 3D Map Modal Styles */
+.three-d-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.three-d-modal__content {
+  width: 95%;
+  height: 90vh;
+  max-width: 1400px;
+  background: #1e293b;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.three-d-modal__header {
+  padding: 1.25rem 2rem;
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.three-d-modal__header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.025em;
+}
+
+.three-d-modal__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-toggle {
+  background: #334155;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-toggle:hover:not(.active) {
+  background: #475569;
+  color: #f8fafc;
+}
+
+.btn-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.btn-close:hover {
+  background: #dc2626;
+  transform: rotate(90deg);
+}
+
+.three-d-modal__body {
+  flex: 1;
+  background: #000;
+  position: relative;
+}
+
+.map-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .three-d-modal__content {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
+  
+  .three-d-modal__header {
+    padding: 1rem;
+  }
+  
+  .btn-toggle {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}
